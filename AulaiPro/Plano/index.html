@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <link rel="icon" type="image/png" href="/static/favicon.png" sizes="32x32">
+  <link rel="icon" href="/static/favicon.ico">
+    <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gerador de Plano de Aula (IA)</title>
+
+  <script>
+    (function () {
+      const st = JSON.parse(localStorage.getItem('lessonai.appearance') || '{}');
+      document.documentElement.setAttribute('data-theme', st.mode || 'light');
+      document.documentElement.style.setProperty('--accent', st.accent || '#3b82f6');
+      document.documentElement.style.fontSize = ((st.fs || 100)/100) + 'em';
+    })();
+  </script>
+
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body.lock-mode #btn-basico:not(.active),
+    .hide, .hidden, [hidden]{ display:none !important; }
+    .top-status{ position:fixed; top:16px; right:24px; color:#444; z-index:10; }
+    .badge{ padding:2px 8px; border-radius:10px; background:#eee; }
+    .badge.ok{ background:#d1fae5; color:#065f46; }
+    .badge.err{ background:#fee2e2; color:#991b1b; }
+
+    /* ——— estilo “lista suspensa” com busca ——— */
+    .combo-search{
+      width:100%;
+      margin:.25rem 0 .5rem 0;
+      padding:.6rem .8rem;
+      border:1px solid #d8dee6;
+      border-radius:10px;
+      background:#fff;
+    }
+    .combo-select{
+      width:100%;
+      border:1px solid #d8dee6;
+      border-radius:10px;
+      padding:.25rem;
+      background:#fff;
+    }
+    .combo-select:focus{
+      outline:none;
+      border-color:#3b82f6;
+      box-shadow:0 0 0 2px rgba(59,130,246,.15);
+    }
+
+    /* === Multiselect estilo "select" com summary (cole AQUI, no final) === */
+    /* === Multiselect estilo "select" com summary === */
+    .msel { position:relative; display:block; }
+    .msel > summary { list-style:none; cursor:pointer; padding:.6rem .8rem; border:1px solid #d8dee6; border-radius:10px; background:#fff; }
+    .msel > summary:focus { outline:none; border-color:var(--accent,#3b82f6); box-shadow:0 0 0 2px rgba(59,130,246,.15); }
+    .msel[open] > summary { border-bottom-left-radius:0; border-bottom-right-radius:0; }
+    .msel .msel-body { border:1px solid #d8dee6; border-top:none; border-bottom-left-radius:10px; border-bottom-right-radius:10px; padding:.5rem; background:#fff; max-height:280px; overflow:auto; }
+    .msel .option-list { max-height:220px; overflow:auto; }
+
+ 
+
+</style>
+
+</head>
+
+<body data-api-base="http://127.0.0.1:8000" data-etapa="medio" data-disciplina="">
+
+  <header class="app-header">
+    <h1>LessonAI(IA) RM</h1>
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="toolbar">
+        <div class="segmented" id="tipo-switch" aria-label="Etapa">
+          <button class="seg" data-etapa="fundamental_I" type="button">Fundamental I</button>
+          <button class="seg" data-etapa="fundamental_II" type="button">Fundamental II</button>
+          <button class="seg active" data-etapa="medio" type="button">Médio</button>
+        </div>
+
+
+            <!-- BOTÃO APARÊNCIA -->
+            <button id="btn-aparencia" class="btn ghost sm" type="button">Aparência</button>
+
+            <!-- DROPDOWN EXPORTAR -->
+            <details class="export-dropdown">
+              <summary class="btn ghost sm">Exporte ▾</summary>
+              <div class="menu export-menu">
+                <button id="btn-export-docx" class="btn sm" type="button">Exportar DOCX</button>
+                <button id="btn-export-pptx" class="btn sm" type="button">Exportar PPTX</button>
+                <button id="btn-export-xlsx" class="btn sm" type="button">Exportar XLSX</button>
+                <button id="btn-export-pdf" class="btn sm" type="button">Exportar PDF</button>
+              </div>
+            </details>
+
+    <!-- Popover: Planos salvos -->
+    <div class="menu" id="menu-planos" hidden>
+
+          <div class="row gap">
+            <button class="btn sm" id="btn-salvar-plano">Salvar plano atual</button>
+            <button class="btn sm ghost" id="btn-recarregar-lista">Atualizar lista</button>
+          </div>
+          <div id="lista-planos" class="list-thin"></div>
+        </div>
+
+        
+
+        <!-- Modal: Perfil -->
+        <dialog id="dlg-perfil"></dialog>
+      </div>
+    </div>
+    <!-- /TOPBAR -->
+
+    <!-- Modal: Aparência -->
+    <dialog id="dlg-aparencia">
+      <form method="dialog" class="profile-form">
+        <h3>Aparência</h3>
+        <div class="row" style="justify-content:space-between">
+          <label><input type="radio" name="theme" value="light" id="theme-light"> Claro</label>
+          <label><input type="radio" name="theme" value="dark"  id="theme-dark"> Escuro</label>
+        </div>
+        <label>Cor de destaque
+          <input type="color" id="accent-color" value="#2563eb">
+        </label>
+        <label>Tamanho da fonte
+          <input type="range" id="font-scale" min="0.9" max="1.3" step="0.05" value="1">
+        </label>
+        <div class="row end gap">
+          <button value="cancel" class="btn ghost">Fechar</button>
+          <button id="aparencia-salvar" class="btn">Aplicar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- Health dot + status -->
+    <div class="status"><span id="health-dot" class="dot dot-off"></span></div>
+    <div class="top-status">Backend: <span id="backend-status" class="badge">desconectado</span></div>
+  </header>
+
+  <!-- Layout principal -->
+  <main class="container" id="layout-main">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <section class="card">
+                <h2>Filtros do Plano</h2>
+
+        <div class="filtros-grid">
+          <!-- Linha 1: Escola / Turma / Ano / Data -->
+          <div class="campo">
+            <label for="id-escola">Escola</label>
+            <input id="id-escola" type="text" placeholder="Nome da escola" />
+          </div>
+
+          <div class="campo">
+            <label for="id-turma">Turma</label>
+            <input id="id-turma" type="text" placeholder="Ex.: 2º B" />
+          </div>
+
+          <div class="campo">
+            <label for="ano-letivo">Ano letivo</label>
+            <input id="ano-letivo" name="ano" type="text" class="control control--buttony" placeholder="2025" />
+          </div>
+
+          <div class="campo">
+            <label for="id-data">Data</label>
+            <input id="id-data" type="date" />
+          </div>
+
+          <!-- Linha 2: Professor / Etapa / Componente (mesma linha) -->
+          <div class="campo">
+            <label for="id-professor">Professor(a)</label>
+            <input id="id-professor" type="text" placeholder="Seu nome" />
+          </div>
+
+          <div class="campo">
+            <label for="selEtapa">Etapa</label>
+            <select id="selEtapa" class="control control--buttony">
+              <option value="fundamental_I">Fundamental I</option>
+              <option value="fundamental_II">Fundamental II</option>
+              <option value="medio" selected>Médio</option>
+            </select>
+          </div>
+
+          <div class="campo">
+            <label for="seldisciplina">Componente Curricular</label>
+            <select id="seldisciplina" class="control control--buttony control--lg"></select>
+          </div>
+
+
+          <!-- Linha 3: Tema / Unidade + Instrução (mesma linha) -->
+          <div class="campo">
+            <label>Tema / Unidade</label>
+            <details class="msel" id="tema-dropdown">
+              <summary><span id="tema-summary">Selecione os temas…</span></summary>
+              <div class="msel-body">
+                <div class="row gap" style="align-items:center;margin-bottom:.5rem;">
+                  <input id="search-tema" class="combo-search" type="search" placeholder="Filtrar temas..." />
+                  <button id="tema-select-all" class="btn btn--pill" type="button">Marcar tudo</button>
+                  <button id="tema-clear" class="btn btn--pill" type="button">Limpar</button>
+                </div>
+                <!-- FONTE oculta (funnel.js preenche) -->
+                <select id="seltema" multiple style="display:none"></select>
+                <!-- Lista visual -->
+                <ul id="tema-list" class="msel-checklist"></ul>
+              </div>
+            </details>
+          </div>
+
+          <div class="campo">
+            <label for="input-instrucao">
+              Instrução da aula / busca de habilidade (opcional)
+            </label>
+            <input
+              id="input-instrucao"
+              class="control"
+              type="text"
+              placeholder="Ex.: Aula sobre juros simples, boletos e cartão de crédito"
+            />
+          </div>
+
+          <!-- Habilidades (BNCC) logo após Tema -->
+          <div class="campo campo-full">
+            <label>Habilidades (BNCC)</label>
+            <details class="msel" id="wrap-habilidade">
+              <summary id="hab-summary">
+                Habilidades (BNCC) – selecione…
+              </summary>
+
+              <div class="msel-body">
+                <div class="row gap" style="margin-bottom:.5rem;">
+                  <label class="chk">
+                    <input type="checkbox" id="hab-select-all" />
+                    Selecionar tudo
+                  </label>
+                  <button id="btn-atualizar-hab" class="btn sm" type="button">
+                    Atualizar por tema
+                  </button>
+                </div>
+
+                <!-- FONTE oculta para o funil -->
+                <select id="selhabilidade" multiple style="display:none"></select>
+
+                <!-- Lista visual de habilidades (checklist) -->
+                <div id="habilidades" class="checklist"></div>
+              </div>
+            </details>
+          </div>
+
+          <!-- Linha 5: Objeto / Título / Conteúdo (mesma linha) -->
+          <div class="campo">
+            <label>Objeto do Conhecimento (BNCC)</label>
+            <details class="msel" id="wrap-objeto">
+              <summary><span id="oc-summary">Selecione os objetivos…</span></summary>
+              <div class="msel-body">
+                <div class="row gap" style="align-items:center;margin-bottom:.5rem;">
+                  <input id="oc-search" class="combo-search" type="search" placeholder="Filtrar Objeto do Conhecimento..." />
+                  <button id="oc-select-all" class="btn btn--pill" type="button">Marcar tudo</button>
+                  <button id="oc-clear" class="btn btn--pill" type="button">Limpar</button>
+                </div>
+                <!-- Fonte oculta (funnel.js preenche) -->
+                <select id="selobjeto" multiple style="display:none"></select>
+                <!-- Lista visual -->
+                <ul class="msel-checklist" id="oc-list"></ul>
+              </div>
+            </details>
+            <small class="muted">
+              
+            </small>
+          </div>
+
+          <div class="campo">
+            <div class="row" style="align-items:center;gap:.5rem;">
+              <label for="seltitulo">Títulos da Aula</label>
+              <small class="muted">
+                
+              </small>
+            </div>
+            <details class="msel" id="wrap-titulo">
+              <summary id="titulo-summary" aria-controls="titulo-panel" aria-expanded="false">
+                Selecione os títulos…
+              </summary>
+              <div id="titulo-panel" class="msel-body" role="group" aria-labelledby="titulo-summary">
+                <div class="row gap" style="align-items:center;margin-bottom:.5rem;">
+                  <input id="search-titulo" class="combo-search" type="search" placeholder="Filtrar títulos..." aria-label="Filtrar títulos" />
+                  <button id="titulo-select-all" class="btn btn--pill" type="button">Marcar tudo</button>
+                  <button id="titulo-clear" class="btn btn--pill" type="button">Limpar</button>
+                </div>
+                <!-- FONTE oculta (funnel.js preenche) -->
+                <select id="seltitulo" multiple style="display:none"></select>
+                <!-- Lista visual -->
+                <ul id="titulo-list" class="msel-checklist" aria-live="polite"></ul>
+              </div>
+            </details>
+          </div>
+
+          <div class="campo">
+            <label for="selconteudo">Conteúdo</label>
+            <details class="msel" id="wrap-conteudo">
+              <summary id="conteudo-summary" aria-controls="conteudo-panel" aria-expanded="false">
+                Selecione os conteúdos…
+              </summary>
+              <div id="conteudo-panel" class="msel-body" role="group" aria-labelledby="conteudo-summary">
+                <div class="row gap" style="align-items:center;margin-bottom:.5rem;">
+                  <input id="search-conteudo" class="combo-search" type="search" placeholder="Filtrar conteúdos..." aria-label="Filtrar conteúdos" />
+                  <button id="conteudo-select-all" class="btn btn--pill" type="button">Marcar tudo</button>
+                  <button id="conteudo-clear" class="btn btn--pill" type="button">Limpar</button>
+                </div>
+                <!-- FONTE oculta (funnel.js preenche) -->
+                <select id="selconteudo" multiple style="display:none"></select>
+                <!-- Lista visual -->
+                <ul id="conteudo-list" class="msel-checklist" aria-live="polite"></ul>
+              </div>
+            </details>
+          </div>
+
+          <!-- Linha 8: Aula (por enquanto mantida – se depois quiser remover, tiramos aqui) -->
+                    <!-- Linha 8: Aula (oculta do fluxo, mantida por compatibilidade) -->
+          <div class="campo campo-full campo-aula">
+
+            <label for="selaula">Aula</label>
+            <details class="msel" id="wrap-aula">
+              <summary id="aula-summary" aria-controls="aula-panel" aria-expanded="false">
+                Selecione as aulas…
+              </summary>
+              <div id="aula-panel" class="msel-body" role="group" aria-labelledby="aula-summary">
+                <div class="row gap" style="align-items:center;margin-bottom:.5rem;">
+                  <input id="search-aula" class="combo-search" type="search" placeholder="Filtrar aulas..." aria-label="Filtrar aulas" />
+                  <button id="aula-select-all" class="btn btn--pill" type="button">Marcar tudo</button>
+                  <button id="aula-clear" class="btn btn--pill" type="button">Limpar</button>
+                </div>
+
+                <!-- FONTE oculta (funnel.js preenche) -->
+                <select id="selaula" multiple style="display:none"></select>
+
+                <!-- Lista visual -->
+                <ul id="aula-list" class="msel-checklist" aria-live="polite"></ul>
+              </div>
+            </details>
+          </div>
+        </div> <!-- fim .filtros-grid -->
+         
+        </div>
+         
+<!-- PAINEL DE ESCOLHA DOS BLOCOS DO PLANO (ÁREA VERMELHA) -->
+<div id="painel-checklists">
+
+  <!-- Metodologia e Estratégias -->
+  <details class="msel painel-bloco" id="metod-dropdown">
+    <summary>
+      <span>Metodologia e Estratégias</span>
+    </summary>
+    <div class="msel-body">
+      <ul class="msel-checklist">
+        <li>
+          <input type="checkbox" id="metod-expositiva">
+          <span class="item-label">Aula expositiva dialogada</span>
+        </li>
+        <li>
+          <input type="checkbox" id="metod-problemas">
+          <span class="item-label">Resolução de problemas</span>
+        </li>
+        <li>
+          <input type="checkbox" id="metod-grupo">
+          <span class="item-label">Trabalho em grupo</span>
+        </li>
+        <li>
+          <input type="checkbox" id="metod-pratica">
+          <span class="item-label">Atividade prática</span>
+        </li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- Recursos Didáticos -->
+  <details class="msel painel-bloco" id="recursos-dropdown">
+    <summary>
+      <span>Recursos Didáticos</span>
+    </summary>
+    <div class="msel-body">
+      <ul class="msel-checklist">
+        <li>
+          <input type="checkbox" id="rec-quadro">
+          <span class="item-label">Quadro / marcador</span>
+        </li>
+        <li>
+          <input type="checkbox" id="rec-projetor">
+          <span class="item-label">Projetor / slides</span>
+        </li>
+        <li>
+          <input type="checkbox" id="rec-fichas">
+          <span class="item-label">Fichas ou atividades impressas</span>
+        </li>
+        <li>
+          <input type="checkbox" id="rec-plataforma">
+          <span class="item-label">Plataforma digital / vídeo</span>
+        </li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- Atividades de Desempenho -->
+  <details class="msel painel-bloco" id="ativ-dropdown">
+    <summary>
+      <span>Atividades de Desempenho</span>
+    </summary>
+    <div class="msel-body">
+      <ul class="msel-checklist">
+        <li>
+          <input type="checkbox" id="ativ-praticos">
+          <span class="item-label">Exercícios práticos em sala</span>
+        </li>
+        <li>
+          <input type="checkbox" id="ativ-contexto">
+          <span class="item-label">Situações-problema contextualizadas</span>
+        </li>
+        <li>
+          <input type="checkbox" id="ativ-escrita">
+          <span class="item-label">Produção escrita individual</span>
+        </li>
+        <li>
+          <input type="checkbox" id="ativ-grupo">
+          <span class="item-label">Atividade em grupo</span>
+        </li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- Critérios de Avaliação -->
+  <details class="msel painel-bloco" id="criterios-dropdown">
+    <summary>
+      <span>Critérios de Avaliação</span>
+    </summary>
+    <div class="msel-body">
+      <ul class="msel-checklist">
+        <li>
+          <input type="checkbox" id="crit-participacao">
+          <span class="item-label">Participação e engajamento</span>
+        </li>
+        <li>
+          <input type="checkbox" id="crit-correcao">
+          <span class="item-label">Resolução correta dos exercícios</span>
+        </li>
+        <li>
+          <input type="checkbox" id="crit-argumentacao">
+          <span class="item-label">Clareza na argumentação / justificativa</span>
+        </li>
+        <li>
+          <input type="checkbox" id="crit-prazo">
+          <span class="item-label">Entrega no prazo</span>
+        </li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- Avaliação e Autoavaliação -->
+  <details class="msel painel-bloco" id="ava-dropdown">
+    <summary>
+      <span>Avaliação e Autoavaliação</span>
+    </summary>
+    <div class="msel-body">
+      <ul class="msel-checklist">
+        <li>
+          <input type="checkbox" id="ava-auto">
+          <span class="item-label">Autoavaliação escrita do estudante</span>
+        </li>
+        <li>
+          <input type="checkbox" id="ava-discussao">
+          <span class="item-label">Discussão coletiva sobre a aprendizagem</span>
+        </li>
+        <li>
+          <input type="checkbox" id="ava-registro">
+          <span class="item-label">Registro do professor sobre avanços e dificuldades</span>
+        </li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- Considerações Finais -->
+  <details class="msel painel-bloco" id="finais-dropdown" open>
+    <summary>
+      <span>Considerações Finais</span>
+    </summary>
+    <div class="msel-body">
+      <textarea
+        class="control"
+        rows="4"
+        placeholder="Síntese final da aula, intervenções futuras, registros gerais..."
+      ></textarea>
+    </div>
+  </details>
+
+</div>
+
+ 
+
+
+      </section>
+    </aside>
+
+
+
+   <section class="content">
+
+   <section class="card plano-card" id="card-plano">
+  <h2>Plano de Aula</h2>
+
+  <!-- Cabeçalho visual do plano (espelho do formato impresso) -->
+  <div class="plano-header">
+    <div class="plano-title-row">
+      <span class="plano-title-label">TÍTULO:</span>
+      <span class="plano-title-value" id="plano-titulo-resumo">
+        Plano de Aula – <span data-plano-componente></span> – <span data-plano-tema></span>
+      </span>
+    </div>
+
+    <div class="plano-id-grid">
+      <div><strong>Escola:</strong> <span data-plano-escola></span></div>
+      <div><strong>Professor(a):</strong> <span data-plano-professor></span></div>
+      <div><strong>Turma:</strong> <span data-plano-turma></span></div>
+      <div><strong>Ano letivo:</strong> <span data-plano-ano></span></div>
+      <div><strong>Etapa:</strong> <span data-plano-etapa></span></div>
+      <div><strong>Componente:</strong> <span data-plano-componente2></span></div>
+    </div>
+  </div>
+
+  <!-- Espaço reservado para qualquer conteúdo extra gerado via JS -->
+  <div id="plano-basico" class="plano-extra">
+    <div class="grid-2"></div>
+  </div>
+
+  <!-- Corpo do plano no formato em 2 colunas -->
+  <div class="plano-body grid-2">
+    <div class="col">
+
+      <!-- Temas + Títulos + Conteúdos -->
+      <label>Temas, Títulos e Conteúdos (BNCC)</label>
+      <textarea id="txt-bncc" placeholder="Temas, títulos e conteúdos selecionados..."></textarea>
+
+      <!-- Habilidades (pode ter mais de uma) -->
+      <label>Habilidades (BNCC)</label>
+      <textarea id="txt-hab-bncc" placeholder="Habilidades selecionadas..."></textarea>
+
+      <!-- Objeto do Conhecimento -->
+      <label>Objeto do Conhecimento</label>
+      <textarea id="txt-obj-conhec" placeholder="Objeto do Conhecimento."></textarea>
+
+      <!-- Objetivos de Aprendizagem / Específicos -->
+      <label>Objetivos de Aprendizagem</label>
+      <textarea id="txt-obj-aprend" placeholder="Objetivos de aprendizagem (gerados a partir das habilidades e OEs)."></textarea>
+
+      <!-- Conhecimentos Prévios -->
+      <label>Conhecimentos Prévios</label>
+      <textarea id="txt-previos" placeholder="Conhecimentos prévios."></textarea>
+
+    </div>
+
+        <div class="col">
+      <!-- Metodologia e Estratégias -->
+      <label>Metodologia e Estratégias</label>
+      <div class="row gap">
+        <label><input type="checkbox" id="metod-select-all" /> Selecionar tudo</label>
+      </div>
+      <div id="metod-list" class="checklist"></div>
+      <!-- textarea que o TextareaUI preenche -->
+      <textarea
+        id="txt-metodologia"
+        placeholder="Metodologia e estratégias..."
+        rows="4"
+      ></textarea>
+
+      <!-- Recursos Didáticos -->
+      <label>Recursos Didáticos</label>
+      <div class="row gap">
+        <label><input type="checkbox" id="recursos-select-all" /> Selecionar tudo</label>
+      </div>
+      <div id="recursos-list" class="checklist"></div>
+      <!-- textarea que o TextareaUI preenche -->
+      <textarea
+        id="txt-recursos"
+        placeholder="Recursos didáticos..."
+        rows="3"
+      ></textarea>
+
+      <!-- Atividades de Desempenho -->
+      <label>Atividades de Desempenho</label>
+      <textarea
+        id="txt-ativ-desempenho"
+        placeholder="Atividades..."
+        rows="3"
+      ></textarea>
+
+      <!-- Critérios de Avaliação -->
+      <label>Critérios de Avaliação</label>
+      <textarea
+        id="txt-criterios"
+        placeholder="Critérios..."
+      ></textarea>
+
+      <!-- Avaliação e Autoavaliação -->
+      <label>Avaliação e Autoavaliação</label>
+      <textarea
+        id="txt-avaliacao"
+        placeholder="Avaliação..."
+      ></textarea>
+
+      <!-- Considerações Finais -->
+      <label>Considerações Finais</label>
+      <textarea
+        id="txt-consideracoes"
+        placeholder="Considerações finais..."
+      ></textarea>
+    </div>
+
+
+  <!-- Carga horária / por habilidade -->
+  <h3 class="plano-subtitle">Carga de Aulas</h3>
+  <p class="muted">
+    Para cursos técnicos, informe Teóricas (T) e Práticas (P). Para demais cursos, use apenas “Aulas”.
+  </p>
+  <div id="aulas-por-hab" class="aulas-grid"></div>
+  <div class="total-aulas">
+    <span id="total-aulas-label">Total de aulas necessárias:</span>
+    <strong id="total-aulas">0</strong>
+    <span id="total-aulas-tp" class="muted" style="margin-left:.5rem; display:none;">
+      (T: <span id="total-aulas-t">0</span> • P: <span id="total-aulas-p">0</span>)
+    </span>
+  </div>
+  
+  <!-- Ações de acúmulo -->
+  <div class="row gap plano-actions">
+    <button id="btn-add-plano" class="btn" type="button">+ Adicionar ao plano</button>
+    <button id="btn-clear-sel" class="btn ghost" type="button">Limpar seleção atual</button>
+  </div>
+
+  <!-- Plano acumulado (uma linha por habilidade) -->
+  <details id="acumulado-wrap" open class="plano-acumulado-wrap">
+    <summary><strong>Plano acumulado</strong></summary>
+    <div id="plano-acumulado" class="list-thin"></div>
+  </details>
+
+
+  <footer class="app-footer">
+    <small>v1.0 • Manifestos por etapa via API</small>
+  </footer>
+
+  <script src="js/env.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/api.js"></script>
+
+
+<!-- 2) Preenchimento do combo de disciplina e sincronização com o funil -->
+<script>
+  (function () {
+    const BASE = window.API_BASE || window.BASE_URL || '';
+    const $etapa = document.getElementById('selEtapa');
+    const $disc  = document.getElementById('seldisciplina');
+
+    async function fetchDisciplinas(etapa){
+      if (window.API?.disciplinas) return await window.API.disciplinas({ etapa });
+      const url = `${BASE}/api/disciplinas?etapa=${encodeURIComponent(etapa)}`;
+      try {
+        const r = await fetch(url);
+        if (!r.ok) throw new Error('HTTP '+r.status);
+        const js = await r.json();
+        return Array.isArray(js) ? js : (js?.disciplinas || []);
+      } catch { return []; }
+    }
+
+    function toArr(items) {
+      if (Array.isArray(items)) return items;
+      if (items && typeof items === 'object') {
+        return (
+          items.disciplinas ||
+          items.temas ||
+          items.objetos ||
+          items.titulos ||
+          items.conteudos ||
+          items.habilidades ||
+          items.aulas ||
+          []
+        );
+      }
+      return [];
+    }
+
+    function sanitizeLabel(s) {
+      return String(s ?? '').trim();
+    }
+
+    function setOptions(selectEl, items, { placeholder = '— selecione —' } = {}) {
+      if (!selectEl) return;
+      const list = toArr(items);
+      selectEl.innerHTML = '';
+      const opt0 = document.createElement('option');
+      opt0.value = '';
+      opt0.textContent = placeholder;
+      selectEl.appendChild(opt0);
+
+      list.forEach(v => {
+        const op = document.createElement('option');
+        op.value = String(v);
+        op.textContent = sanitizeLabel(v);
+        selectEl.appendChild(op);
+      });
+      selectEl.disabled = list.length === 0;
+    }
+
+
+    async function primeDisciplinas(){
+    const etapa = $etapa?.value || document.body?.dataset?.etapa || '';
+    const lista = await fetchDisciplinas(etapa);
+
+    setOptions($disc, lista, { placeholder: 'Componente Curricular' });
+
+    // 1) Escolhe disciplina válida: body.dataset ou 1ª da lista
+    let chosen = (document.body?.dataset?.disciplina || '').trim();
+    if (!chosen || !lista.includes(chosen)) {
+      chosen = lista[0] || '';
+    }
+    if (chosen) {
+      $disc.value = chosen;
+      document.body.dataset.disciplina = chosen;
+    }
+
+  // 2) Zera caches do funil ao trocar o escopo e liga handlers
+  if (window.Funnel) {
+  window.Funnel.QueryCache?.clear?.();
+  window.Funnel.FunnelStore?.clear?.();
+  window.Funnel.clearDownstream?.('tema');
+
+  // liga handlers apenas uma vez
+  if (!window.__FUNNEL_WIRED__) {
+    window.Funnel.wireFunnelHandlers?.();
+    window.__FUNNEL_WIRED__ = true;
+    console.debug('[Funnel] wireFunnelHandlers: inicializado 1x');
+  } else {
+    console.debug('[Funnel] wireFunnelHandlers: já inicializado — não repetir');
+  }
+}
+
+
+  // 3) Carrega TEMAS já com etapa+disciplina definidos (substitui o IIFE antigo)
+  const etapaNow = document.body.dataset.etapa || $etapa?.value || '';
+  const discNow  = document.body.dataset.disciplina || $disc?.value || '';
+  if (etapaNow && discNow) {
+    await primeTemas(etapaNow, discNow);
+  }
+}
+
+
+    $etapa?.addEventListener('change', async () => {
+    document.body.dataset.etapa = $etapa.value || '';
+
+    // limpa caches e UI
+    window.Funnel?.QueryCache?.clear?.();
+    window.Funnel?.FunnelStore?.clear?.();
+    window.Funnel?.clearDownstream?.('tema');
+
+    await primeDisciplinas(); // repovoa disciplinas e liga funil
+
+    const etapa = document.body.dataset.etapa || '';
+    const disc  = document.body.dataset.disciplina || $disc?.value || '';
+    if (etapa && disc) await primeTemas(etapa, disc);
+   
+
+  });
+
+  $disc?.addEventListener('change', async () => {
+    const novaDisc = $disc.value || '';
+    document.body.dataset.disciplina = novaDisc;
+
+    // limpa caches e UI
+    window.Funnel?.QueryCache?.clear?.();
+    window.Funnel?.FunnelStore?.clear?.();
+    window.Funnel?.clearDownstream?.('tema');
+   
+    // recarrega temas da nova disciplina
+    const etapa = document.body.dataset.etapa || $etapa?.value || '';
+    if (etapa && novaDisc) await primeTemas(etapa, novaDisc);
+
+  });
+  
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', primeDisciplinas);
+    } else {
+      primeDisciplinas();
+    }
+
+
+  })();
+
+</script>
+
+<!-- 3) Funil (precisa ser depois do bloco acima) -->
+
+
+  <script>
+  (function () {
+    const fromBody = document.body?.dataset?.apiBase;
+    window.API_BASE = fromBody || window.API_BASE || window.BASE_URL || 'http://127.0.0.1:8000';
+    window.BASE_URL = window.API_BASE;
+    console.log('[LessonAI] API_BASE =', window.API_BASE);
+  })();
+  </script>
+
+  <script src="js/health.js"></script>
+  <script src="js/ui-optionlist.js"></script>
+  <script src="js/funnel.js"></script>
+  <script src="js/export.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/TextareaUI.js"></script>
+
+  
+  <script src="js/diag_frontend.js"></script>
+
+<script>
+/* Sincroniza summaries e botões de Tema, Títulos e Conteúdo
+   no mesmo padrão do oc (BNCC) */
+document.addEventListener('DOMContentLoaded', () => {
+  function wireMsel(key) {
+  const sel =
+    key === 'titulo'    ? document.getElementById('seltitulo')   :
+    key === 'tema'      ? document.getElementById('seltema')     :
+    key === 'oc'        ? document.getElementById('selobjeto')   : // ajustado ao novo id
+    key === 'aula'      ? document.getElementById('selaula')     : // NOVO
+                          document.getElementById('selconteudo');   // conteudo
+
+  const summary = document.getElementById(`${key}-summary`);
+  const btnAll  = document.getElementById(`${key}-select-all`);
+  const btnClr  = document.getElementById(`${key}-clear`);
+
+  function labelDefault(k){
+    if (k === 'titulo') return 'Selecione os títulos…';
+    if (k === 'tema')   return 'Selecione os temas…';
+    if (k === 'oc')     return 'Selecione os objetos…';
+    if (k === 'aula')   return 'Selecione as aulas…'; // NOVO
+    return 'Selecione os conteúdos…';
+  }
+
+  function atualizarSummary() {
+    if (!sel || !summary) return;
+    const qtd = Array.from(sel.selectedOptions || []).length;
+    summary.textContent = qtd ? `${qtd} selecionado(s)` : labelDefault(key);
+  }
+
+  btnAll?.addEventListener('click', () => {
+    Array.from(sel?.options || []).forEach(o => o.selected = true);
+    sel?.dispatchEvent(new Event('change', { bubbles: true }));
+    atualizarSummary();
+  });
+  btnClr?.addEventListener('click', () => {
+    Array.from(sel?.options || []).forEach(o => o.selected = false);
+    sel?.dispatchEvent(new Event('change', { bubbles: true }));
+    atualizarSummary();
+  });
+
+  sel?.addEventListener('change', atualizarSummary);
+  atualizarSummary();
+}
+
+// inclua 'aula' aqui também:
+['tema','titulo','conteudo','oc','aula'].forEach(wireMsel);
+
+});
+</script>
+<script>
+/* Constrói uma checklist a partir de um <select multiple>,
+   ordena alfabeticamente (pt-BR), conecta busca / marcar tudo / limpar
+   e mantém o <select> sincronizado com a UI (para o funnel.js). */
+
+document.addEventListener('DOMContentLoaded', () => {
+  function makeChecklist({key, selectId, listId, searchId, summaryId}) {
+    const sel     = document.getElementById(selectId);
+    const listEl  = document.getElementById(listId);
+    const search  = document.getElementById(searchId);
+    const summary = document.getElementById(summaryId);
+    const btnAll  = document.getElementById(`${key}-select-all`);
+    const btnClr  = document.getElementById(`${key}-clear`);
+
+    if(!sel || !listEl) return;
+
+    // rótulo padrão do summary
+    const labelDefault =
+      key === 'titulo'   ? 'Selecione os títulos…' :
+      key === 'tema'     ? 'Selecione os temas…'   :
+                           'Selecione os conteúdos…';
+
+    function updateSummary(){
+      if(!summary) return;
+      const count = Array.from(sel.selectedOptions || []).length;
+      summary.textContent = count ? `${count} selecionado(s)` : labelDefault;
+    }
+
+    // Renderiza LI + checkbox a partir do <select>
+    function render(filterText = '') {
+      const items = Array.from(sel.options).map(o => ({
+        value: o.value,
+        label: o.textContent.trim(),
+        selected: o.selected,
+        disabled: o.disabled
+      }));
+
+      // filtro
+      const ft = (filterText || '').trim().toLocaleLowerCase('pt-BR');
+      const filtered = ft
+        ? items.filter(it => it.label.toLocaleLowerCase('pt-BR').includes(ft))
+        : items;
+
+      // ordena pt-BR, case-insensitive
+      filtered.sort((a,b) =>
+        a.label.localeCompare(b.label, 'pt-BR', {sensitivity:'base'})
+      );
+
+      // pinta
+      listEl.innerHTML = '';
+      const frag = document.createDocumentFragment();
+
+      filtered.forEach(it => {
+        const li = document.createElement('li');
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = !!it.selected;
+        cb.disabled = !!it.disabled;
+        cb.dataset.value = it.value;
+
+        const span = document.createElement('span');
+        span.className = 'item-label';
+        span.textContent = it.label;
+
+        cb.addEventListener('change', () => {
+          // reflete no <select>
+          const opt = Array.from(sel.options).find(o => o.value === it.value);
+          if (opt) opt.selected = cb.checked;
+          sel.dispatchEvent(new Event('change', {bubbles:true}));
+          updateSummary();
+        });
+
+        li.appendChild(cb);
+        li.appendChild(span);
+        frag.appendChild(li);
+      });
+
+      listEl.appendChild(frag);
+      updateSummary();
+    }
+
+    // Busca
+    search?.addEventListener('input', () => render(search.value));
+
+    // Marcar tudo
+    btnAll?.addEventListener('click', () => {
+      Array.from(sel.options).forEach(o => o.selected = !o.disabled);
+      sel.dispatchEvent(new Event('change', {bubbles:true}));
+      render(search?.value);
+    });
+
+    // Limpar
+    btnClr?.addEventListener('click', () => {
+      Array.from(sel.options).forEach(o => o.selected = false);
+      sel.dispatchEvent(new Event('change', {bubbles:true}));
+      render(search?.value);
+    });
+
+    // Se o <select> for repovoado pelo funnel.js, reconstruímos
+    const mo = new MutationObserver(() => render(search?.value));
+    mo.observe(sel, {childList:true, subtree:false});
+
+    // Atualiza summary quando houver seleção por código
+    sel.addEventListener('change', updateSummary);
+
+    // primeira renderização
+    render();
+  }
+
+  // Tema
+  makeChecklist({
+    key:'tema',
+    selectId:'seltema',
+    listId:'tema-list',
+    searchId:'search-tema',
+    summaryId:'tema-summary'
+  });
+
+  
+  // oc (Objeto do Conhecimento) — usa <select id="selobjeto"> como fonte
+  makeChecklist({
+    key:'oc',
+    selectId:'selobjeto',     // <- corrigido
+    listId:'oc-list',
+    searchId:'oc-search',
+    summaryId:'oc-summary'
+  });
+
+
+  
+  // Títulos
+  makeChecklist({
+    key:'titulo',
+    selectId:'seltitulo',      // <- corrigido (minúsculo)
+    listId:'titulo-list',
+    searchId:'search-titulo',
+    summaryId:'titulo-summary'
+  });
+
+
+  // Conteúdo
+  makeChecklist({
+    key:'conteudo',
+    selectId:'selconteudo',
+    listId:'conteudo-list',
+    searchId:'search-conteudo',
+    summaryId:'conteudo-summary'
+  });
+  
+
+  // Aula
+  makeChecklist({
+    key:'aula',
+    selectId:'selaula',
+    listId:'aula-list',
+    searchId:'search-aula',
+    summaryId:'aula-summary'
+  });
+
+
+});
+</script>
+<script>
+// ===============================
+// Card "Habilidades (BNCC)" – checklist
+// ===============================
+(function (window, document) {
+  'use strict';
+
+  function syncAllState(selectEl, listEl, chkAll) {
+    if (!selectEl || !listEl || !chkAll) return;
+    const opts = Array.from(selectEl.options || []).filter(o => o.value);
+    const checks = listEl.querySelectorAll('input[type="checkbox"][data-value]');
+    const total = opts.length;
+    if (!total) {
+      chkAll.checked = false;
+      chkAll.indeterminate = false;
+      return;
+    }
+
+    let marcados = 0;
+    checks.forEach(c => { if (c.checked) marcados++; });
+
+    chkAll.checked = marcados === total;
+    chkAll.indeterminate = marcados > 0 && marcados < total;
+  }
+
+  function buildHabChecklist() {
+    const sel = document.getElementById('selhabilidade');
+    const wrap = document.getElementById('habilidades');
+    const chkAll = document.getElementById('hab-select-all');
+
+    if (!sel || !wrap) {
+      console.warn('[HabChecklist] selhabilidade ou #habilidades não encontrados.');
+      return;
+    }
+
+    // Renderiza a partir do <select>
+    function render() {
+      const opts = Array.from(sel.options || []).filter(o => o.value);
+      wrap.innerHTML = '';
+
+      if (!opts.length) {
+        const p = document.createElement('p');
+        p.textContent = 'Nenhuma habilidade carregada para o contexto atual.';
+        p.style.fontStyle = 'italic';
+        wrap.appendChild(p);
+        if (chkAll) {
+          chkAll.checked = false;
+          chkAll.indeterminate = false;
+        }
+        console.log('[HabChecklist] sem habilidades para listar.');
+        return;
+      }
+
+      const frag = document.createDocumentFragment();
+
+      opts.forEach(o => {
+        const label = document.createElement('label');
+        label.className = 'chk';
+
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.dataset.value = o.value;
+        input.checked = o.selected;
+
+        input.addEventListener('change', () => {
+          // Sincroniza com o <select>
+          o.selected = input.checked;
+          sel.dispatchEvent(new Event('change', { bubbles: true }));
+          if (chkAll) syncAllState(sel, wrap, chkAll);
+        });
+
+        label.appendChild(input);
+        label.append(' ' + (o.textContent || o.value));
+
+        frag.appendChild(label);
+      });
+
+      wrap.appendChild(frag);
+      if (chkAll) syncAllState(sel, wrap, chkAll);
+
+      console.log('[HabChecklist] renderizado',
+        opts.length, 'itens a partir de selhabilidade.options');
+    }
+
+    // "Selecionar tudo"
+    if (chkAll) {
+      chkAll.addEventListener('change', () => {
+        const marcar = chkAll.checked;
+        const opts = Array.from(sel.options || []).filter(o => o.value);
+        const checks = wrap.querySelectorAll('input[type="checkbox"][data-value]');
+
+        opts.forEach(o => { o.selected = marcar; });
+        checks.forEach(c => { c.checked = marcar; });
+
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+        syncAllState(sel, wrap, chkAll);
+      });
+    }
+
+    // Observa mudanças de opções no <select> (quando o funil atualiza)
+    const obs = new MutationObserver(() => {
+      console.log('[HabChecklist] MutationObserver → reconstruindo lista');
+      render();
+    });
+
+    obs.observe(sel, { childList: true, subtree: false });
+
+    // Primeira renderização
+    render();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', buildHabChecklist);
+  } else {
+    buildHabChecklist();
+  }
+
+})(window, document);
+</script>
+
+
+<script>
+// PATCH rápido: carregar TEMAS assim que etapa/disciplina estiverem definidos
+let __primeTemasKey = null;
+let __primeTemasInflight = null;
+
+async function primeTemas(etapa, disciplina) {
+  const key = `${etapa}::${disciplina}`;
+  if (__primeTemasInflight && __primeTemasKey === key) return __primeTemasInflight;
+
+  __primeTemasKey = key;
+  __primeTemasInflight = (async () => {
+    try {
+      const raw = await (window.API?.temas
+        ? window.API.temas({ etapa, disciplina })
+        : fetch(
+            `${window.API_BASE || ''}/api/dados/temas?etapa=${encodeURIComponent(etapa)}&disciplina=${encodeURIComponent(disciplina)}`
+          ).then(r => (r.ok ? r.json() : Promise.reject(r.statusText)))
+      );
+
+      // 👇 NORMALIZA: aceita array OU objeto { temas: [...] }
+      const temasArr = Array.isArray(raw)
+        ? raw
+        : (raw?.temas || raw?.items || []);
+
+      const sel = document.getElementById('seltema');
+      if (!sel) {
+        console.error('[primeTemas] #seltema não encontrado');
+        return;
+      }
+
+      sel.innerHTML = temasArr
+        .map(t => {
+          const s = String(
+            typeof t === 'string'
+              ? t
+              : (t.label ?? t.value ?? t.id ?? '')
+          ).trim();
+          return s ? `<option value="${s}">${s}</option>` : '';
+        })
+        .join('');
+
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+      console.log('[primeTemas] temas carregados:', sel.options.length);
+    } catch (e) {
+      console.error('[primeTemas] falhou ao carregar temas:', e);
+    } finally {
+      __primeTemasInflight = null;
+    }
+  })();
+
+  return __primeTemasInflight;
+}
+</script>
+
+</script>
+</body>
+</html>

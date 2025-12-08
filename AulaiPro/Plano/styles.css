@@ -1,0 +1,1285 @@
+/* ===========================
+   Design tokens e temas
+=========================== */
+:root {
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  --gap-1: 6px;
+  --gap-2: 10px;
+  --gap-3: 14px;
+  --gap-4: 18px;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.10);
+  --shadow-lg: 0 10px 24px rgba(0,0,0,.12);
+
+  /* escala */
+  --font-scale: 1;
+
+  /* acento unificado */
+  --accent: #2563eb;
+  --accent-100: color-mix(in srgb, var(--accent) 15%, var(--bg));
+  --accent-600: color-mix(in srgb, var(--accent) 70%, #000);
+}
+
+:root[data-theme='light']{
+  --bg:#f7f9fc; --card:#ffffff; --text:#0f172a; --muted:#eef2f7; --border:#e5e7eb;
+  --accent:#2563eb; --accent-600:#1e40af; --accent-100:#e8f0ff;
+  --good:#16a34a; --bad:#ef4444; --warn:#f59e0b;
+  color-scheme: light;
+}
+
+:root[data-theme='dark']{
+  --bg:#0a0f1a; --card:#0f172a; --text:#e5e7eb; --muted:#0b1220; --border:#1e293b;
+  --accent:#3b82f6; --accent-600:#1d4ed8; --accent-100:#0f1c3a;
+  --good:#22c55e; --bad:#f43f5e; --warn:#fbbf24;
+  color-scheme: dark;
+  --accent-100: color-mix(in srgb, var(--accent) 25%, var(--bg));
+  --accent-600: color-mix(in srgb, var(--accent) 75%, #000);
+}
+
+/* fonte base */
+html { font-size: calc(16px * var(--font-scale)); }
+
+/* transições suaves */
+html, body { transition: background-color .2s ease, color .2s ease; }
+
+/* ===========================
+   Reset e base
+=========================== */
+*{ box-sizing:border-box }
+html,body{ height:100% }
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.4;
+}
+
+/* ===========================
+   Utilitários
+=========================== */
+.hidden{ display:none !important }
+/* shim de compatibilidade — remove quando não houver mais .hiden no HTML/JS */
+.hiden{ display:none !important }
+
+.muted{ opacity:.8 }
+.hr{ height:1px; background:var(--border); margin:12px 0 }
+
+/* ===========================
+   Layout
+=========================== */
+.app-header,.app-footer{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 16px; background:var(--card); border-bottom:1px solid var(--border)
+}
+.app-header{ position:sticky; top:0; z-index:10 }
+.app-footer{ border-top:1px solid var(--border); border-bottom:none; margin-top:24px }
+
+.container{
+  max-width: 1600px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+
+.sidebar{ display:flex; flex-direction:column; gap:16px }
+.content{ display:flex; flex-direction:column; gap:16px }
+
+.card{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius-lg); padding:16px; box-shadow:var(--shadow-sm)
+}
+.card h2{ margin:0 0 12px }
+
+/* ===========================
+   Form controls
+=========================== */
+label{ display:block; font-size:.94rem; margin:.25rem 0 .35rem }
+input[type="text"], input[type="date"], select, textarea{
+  width:100%; padding:10px; border:1px solid var(--border);
+  border-radius:var(--radius-md); background:transparent; color:inherit;
+  transition:border .15s ease, box-shadow .15s ease;
+}
+input:focus, select:focus, textarea:focus{
+  outline:none; border-color:var(--accent);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+textarea{ min-height:96px; resize:vertical }
+
+/* =========================================
+ * PATCH-FILTROS-GRID – LINHAS 1, 2 e 4
+ * 4 colunas largas, tudo do mesmo tamanho
+ * ======================================= */
+.filtros-grid{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: 1rem 1.25rem;
+  margin-top: .75rem;
+}
+
+/* quebra para 2 colunas em telas médias */
+@media (max-width: 1200px){
+  .filtros-grid{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* quebra para 1 coluna no mobile */
+@media (max-width: 768px){
+  .filtros-grid{
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Campos que ocupam a linha inteira (Habilidades, Aula, etc.) */
+.campo-full{
+  grid-column: 1 / -1;
+}
+
+/* Labels mais consistentes nas linhas 1, 2 e 4 */
+.filtros-grid .campo label{
+  font-size: .9rem;
+  font-weight: 500;
+  display: block;
+  margin-bottom: .25rem;
+}
+
+/* TODOS os inputs/selects dessas linhas com a mesma altura dos combos */
+.filtros-grid .campo input[type="text"],
+.filtros-grid .campo input[type="date"],
+.filtros-grid .campo input[type="number"],
+.filtros-grid .campo select{
+  height: var(--control-h);
+  font-size: var(--fs-control);
+  border-radius: var(--control-radius);
+  padding: 0 16px;
+}
+
+/* ================================
+   LINHA 4 – Objeto / Títulos / Conteúdo
+   Deixa os 3 campos bem alinhados
+================================ */
+.filtros-grid .campo:nth-of-type(11),
+.filtros-grid .campo:nth-of-type(12),
+.filtros-grid .campo:nth-of-type(13) {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* garante que os "combos" ocupem 100% da largura do campo */
+.filtros-grid .campo:nth-of-type(11) .msel,
+.filtros-grid .campo:nth-of-type(12) .msel,
+.filtros-grid .campo:nth-of-type(13) .msel {
+  width: 100%;
+  margin-top: .25rem;
+}
+
+/* texto de ajuda do primeiro campo (abaixo do Objeto) mais discreto
+   para não "puxar" visualmente a linha pra baixo */
+.filtros-grid .campo:nth-of-type(11) small.muted {
+  margin-top: .25rem;
+  font-size: .78rem;
+  line-height: 1.3;
+  max-width: 32rem;   /* evita quebrar demais em telas grandes */
+}
+
+/* em telas menores, os três continuam empilhando bem */
+@media (max-width: 1200px) {
+  .filtros-grid .campo:nth-of-type(11),
+  .filtros-grid .campo:nth-of-type(12),
+  .filtros-grid .campo:nth-of-type(13) {
+    min-width: 0;
+  }
+}
+
+
+.grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:var(--gap-2) }
+@media (max-width:760px){ .grid-2{ grid-template-columns:1fr } }
+
+.row{ display:flex; align-items:center; gap:var(--gap-2) }
+.gap{ gap:var(--gap-3) }
+
+.checklist{
+  display:grid; grid-template-columns:1fr 1fr; gap:var(--gap-1); margin-bottom:10px
+}
+@media (max-width:560px){ .checklist{ grid-template-columns:1fr } }
+.checklist label{
+  display:flex; gap:8px; align-items:flex-start; padding:8px;
+  border:1px dashed var(--border); border-radius:var(--radius-md);
+  background:transparent
+}
+.checklist input[type="checkbox"]{ margin-top:3px }
+
+.actions{ display:flex; justify-content:flex-end; margin-top:12px }
+.menu{ display:flex; gap:10px; flex-wrap:wrap }
+
+/* selects: contraste adequado no campo e dropdown */
+:root { --select-bg: var(--card); --select-fg: var(--text); }
+select { background-color:var(--select-bg) !important; color:var(--select-fg) !important; border:1px solid var(--border); }
+select option { background-color:var(--select-bg); color:var(--select-fg); }
+select:disabled { opacity:.7 }
+select option[disabled] { color:#9ca3af }
+optgroup { color:var(--select-fg) }
+
+/* ===========================
+   Topbar / menus
+=========================== */
+.topbar { display:flex; flex-direction:column; gap:.5rem; margin-top:.25rem; }
+.toolbar {
+  display:flex;
+  align-items:center;
+  justify-content:center;   /* centraliza o grupo todo */
+  gap:.75rem;
+  flex-wrap:wrap;
+}
+
+
+.segmented{
+  display:inline-flex; border:1px solid var(--border);
+  border-radius:.5rem; overflow:hidden; background:var(--card);
+  height:var(--control-h, 54px);
+}
+.segmented .seg{
+  padding:.45rem .8rem; border:0; background:transparent; color:var(--text); cursor:pointer;
+  min-width:150px; font-weight:600; font-size:var(--fs-control, clamp(14px,.75vw+12px,18px));
+}
+.segmented .seg + .seg{ border-left:1px solid var(--border); }
+.segmented .seg.active{ background:var(--accent); color:#fff; border-color:var(--accent); }
+
+.menu { position:relative; margin-top:.25rem; border:1px solid var(--border); border-radius:.5rem; background:var(--card); color:var(--text); padding:.5rem; }
+.menu[hidden]{ display:none; }  /* <— corrigido */
+
+/* lista fina */
+.list-thin { display:flex; flex-direction:column; gap:.25rem; max-height:260px; overflow:auto; }
+.list-thin .item { display:flex; align-items:center; justify-content:space-between; gap:.5rem; padding:.35rem .5rem; border-radius:.375rem; }
+.list-thin .item:hover { background: color-mix(in oklab, var(--accent), transparent 92%); }
+.item .meta { font-size:.8rem; color: var(--muted); }
+
+dialog::backdrop{ background:rgba(0,0,0,.25); }
+.profile-form { min-width:320px; display:flex; flex-direction:column; gap:.5rem; }
+.profile-form label { display:flex; flex-direction:column; gap:.25rem; font-size:.9rem; }
+
+/* ===========================
+   Botões
+=========================== */
+:root{
+  --control-h: 54px;
+  --control-radius: 14px;
+  --fs-control: clamp(14px, .75vw + 12px, 18px);
+}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center;
+  height:var(--control-h); padding:0 18px; gap:10px;
+  font-size:var(--fs-control); font-weight:600; letter-spacing:.2px;
+  border-radius:var(--control-radius); border:1px solid transparent;
+  cursor:pointer; user-select:none; white-space:nowrap;
+  background:#f6f7f9; color:#111;
+  transition:transform .08s ease, box-shadow .2s ease, background .2s ease, border-color .2s, color .2s;
+  box-shadow:0 0 0 rgba(0,0,0,0);
+}
+.btn:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.08); }
+.btn:active{ transform:translateY(0); box-shadow:0 2px 8px rgba(0,0,0,.10); }
+.btn:focus-visible{ outline:3px solid color-mix(in oklab, var(--accent) 35%, transparent); outline-offset:2px; }
+
+.btn--primary{ background:var(--accent); color:#fff; border-color:var(--accent) }
+.btn--primary:hover{ filter:saturate(1.05) brightness(1.01) }
+.btn--ghost{ background:transparent; border:1px solid color-mix(in srgb, var(--accent), transparent 60%); }
+.btn--ghost:hover{ background: color-mix(in srgb, var(--accent), transparent 90%); }
+.btn--soft{ background:color-mix(in oklab, var(--accent) 12%, #fff); color:#111; border-color:color-mix(in oklab, var(--accent) 35%, transparent); }
+
+.btn--lg{ height:calc(var(--control-h) + 6px); font-size: calc(var(--fs-control) + 1px); }
+.btn--sm{ height:40px; font-size:14px; }
+
+/* Pill leve — usado no “ver detalhes” */
+.btn--pill{
+  --h: 34px; height:var(--h); padding:0 14px; font-size:14px; font-weight:600;
+  background:transparent; border:1px solid rgba(0,0,0,.14); border-radius:999px; color:var(--text);
+}
+.btn--pill:hover{ background: color-mix(in srgb, var(--accent), transparent 90%); transform: translateY(-1px); box-shadow:0 4px 10px rgba(0,0,0,.08); }
+
+/* ===========================
+   Controles visuais “cara de botão”
+=========================== */
+.control{
+  height: var(--control-h);
+  font-size: var(--fs-control);
+  border-radius: var(--control-radius);
+  border: 1px solid rgba(0,0,0,.14);
+  padding: 0 16px;
+  background: #fff;
+  color: #111;
+  outline: none;
+  transition: box-shadow .2s, border-color .2s, background .2s, transform .08s ease;
+}
+.control:hover{ transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.06); }
+.control:focus{ box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent); border-color: var(--accent); }
+
+.control--buttony{ background:#f6f7f9; border-color:transparent; }
+.control--buttony:hover{ box-shadow:0 6px 16px rgba(0,0,0,.08); }
+.control--buttony:focus{ background:#fff; }
+
+select.control{
+  -webkit-appearance:none; appearance:none;
+  padding-right:48px;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat:no-repeat; background-position:right 14px center; background-size:20px 20px;
+}
+
+textarea.control{ min-height: calc(var(--control-h) * 1.4); padding-top:12px; padding-bottom:12px; resize:vertical; }
+.control--lg{ height: calc(var(--control-h) + 6px); font-size: calc(var(--fs-control) + 1px); }
+.control--sm{ height: 40px; font-size: 14px; }
+.control--primary{ background: var(--accent); color: #fff; border-color: var(--accent); }
+.control--soft{ background: color-mix(in oklab, var(--accent) 12%, #fff); border-color: color-mix(in oklab, var(--accent) 35%, transparent); }
+
+/* ===========================
+   Lists/combos e rolagem
+=========================== */
+#seltema option, #selobj option, #selhab option{
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;  /* <— corrigido */
+}
+#selobj option, #selhab option, #seltema option{
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;  /* <— corrigido */
+}
+#seltema, #selobj, #selhab{ scrollbar-width:thin; }
+#seltema::-webkit-scrollbar, #selobj::-webkit-scrollbar, #selhab::-webkit-scrollbar{ height:8px; width:8px; }
+#seltema::-webkit-scrollbar-thumb, #selobj::-webkit-scrollbar-thumb, #selhab::-webkit-scrollbar-thumb{ background:rgba(0,0,0,.25); border-radius:8px; }
+
+#selconteudo{ min-height:140px; max-height:220px; overflow:auto; resize:vertical; }
+
+/* ===========================
+   Multiselect “summary style”
+=========================== */
+.msel { position: relative; display: block; }
+.msel > summary{
+  list-style:none; cursor:pointer; display:flex; align-items:center; justify-content:space-between;
+  height:var(--control-h); padding:0 16px; border:1px solid rgba(0,0,0,.14); border-radius:var(--control-radius);
+  background:#f6f7f9; color:var(--text); font-size:var(--fs-control); font-weight:600; letter-spacing:.2px;
+  transition: box-shadow .2s, border-color .2s, background .2s, transform .08s ease;
+}
+.msel > summary:hover{ transform: translateY(-1px); box-shadow:0 6px 16px rgba(0,0,0,.08); }
+.msel > summary:focus-visible{ outline:3px solid color-mix(in oklab, var(--accent) 35%, transparent); outline-offset:2px; }
+.msel > summary::after{
+  content:""; width:.85em; height:.85em; margin-left:10px;
+  border-right:2px solid currentColor; border-bottom:2px solid currentColor;
+  transform:rotate(45deg); opacity:.85; transition: transform .2s ease, opacity .2s ease;
+}
+.msel[open] > summary{ border-bottom-left-radius:0; border-bottom-right-radius:0; background:#fff; }
+.msel[open] > summary::after{ transform: rotate(-135deg); opacity:1; }
+
+.msel .msel-body{
+  border:1px solid rgba(0,0,0,.14); border-top:none;
+  border-bottom-left-radius:var(--control-radius); border-bottom-right-radius:var(--control-radius);
+  padding:.5rem; background:#fff; max-height:280px; overflow:auto;
+}
+
+/* Lista dentro do msel */
+.msel .option-list{
+  display:flex; flex-wrap:wrap; gap:.5rem; max-height:220px; overflow:auto; padding:.25rem;
+  border:1px dashed var(--border); border-radius:10px; background: color-mix(in srgb, var(--accent) 7%, #fff);
+}
+.option-item{
+  display:inline-flex; align-items:center; gap:.5rem; padding:.55rem .8rem;
+  border:1px solid #d8dee6; border-radius:999px; background:#f8fafc; color:#111827;
+  font-size:.95rem; cursor:pointer; user-select:none; transition: background .15s, border-color .15s, box-shadow .15s;
+}
+.option-item:hover{ background:#eef2f7; border-color:#cbd5e1; }
+.option-item.is-selected{
+  background: color-mix(in srgb, var(--accent) 15%, #fff);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent) inset;
+}
+
+/* ===========================
+   Tema aplicado na página toda
+=========================== */
+html[data-theme]{ background:var(--bg) !important; color:var(--text) !important; }
+html[data-theme] body{ background:transparent !important; color:inherit !important; }
+html[data-theme] header.app-header,
+html[data-theme] footer.app-footer,
+html[data-theme] main.container,
+html[data-theme] #layout-main,
+html[data-theme] .container{ background:transparent !important; }
+html[data-theme] #layout-main .card,
+html[data-theme] .app-header,
+html[data-theme] .app-footer{ background:var(--card) !important; color:var(--text) !important; border-color:var(--border) !important; }
+
+/* ===========================
+   Layout principal
+   → uma coluna centralizada, plano mais largo
+=========================== */
+#layout-main{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 24px;
+  max-width: 1700px;      /* controla a largura total */
+  width: 100%;
+  margin: 0 auto;         /* centraliza na tela */
+  padding: 16px 32px;
+}
+
+/* Filtros do Plano e Plano de Aula ocupam a mesma largura */
+#layout-main > aside.sidebar,
+#layout-main > section.content{
+  width: 100%;
+  max-width: 1600px;      /* “coluna central” */
+  margin: 0 auto;
+}
+
+/* cartões dentro do layout principal */
+#layout-main > aside.sidebar .card,
+#layout-main > section.content > .card{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+/* ===========================
+   Status/Badges
+=========================== */
+.status{ display:flex; align-items:center; gap:8px }
+.dot{ width:10px; height:10px; border-radius:50%; display:inline-block; background:#aaa }
+.dot-on{ background:var(--good) }
+.dot-off{ background:var(--bad) }
+.badge{
+  display:inline-flex; align-items:center; gap:6px;
+  padding:4px 8px; border-radius:999px;
+  border:1px solid var(--border);
+  background:var(--accent-100); color:var(--accent)
+}
+
+/* === ADAPTADORES: fazer Tema, Título e Conteúdo seguirem o mesmo visual === */
+/* Busca (inputs de filtro) com cara de .control--buttony */
+#search-tema,
+#search-titulo,
+#search-conteudo {
+  height: var(--control-h);
+  font-size: var(--fs-control);
+  border-radius: var(--control-radius);
+  border: 1px solid rgba(0,0,0,.14);
+  padding: 0 16px;
+  background: #f6f7f9;
+  color: #111;
+  transition: transform .08s ease, box-shadow .2s ease, border-color .2s, background .2s;
+}
+#search-tema:hover,
+#search-titulo:hover,
+#search-conteudo:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.08);
+}
+#search-tema:focus,
+#search-titulo:focus,
+#search-conteudo:focus {
+  background:#fff;
+  box-shadow:0 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent);
+  border-color:var(--accent);
+  outline:none;
+}
+
+/* Selects (listas múltiplas) com cara de select.control */
+#seltema,
+#selTitulo,
+#selconteudo {
+  -webkit-appearance:none; appearance:none;
+  height: auto;                /* deixa crescer com size="8" */
+  min-height: 180px;           /* altura confortável */
+  font-size: var(--fs-control);
+  border-radius: var(--control-radius);
+  border: 1px solid rgba(0,0,0,.14);
+  padding: 8px 12px;
+  background: #fff;
+  color: #111;
+  transition: box-shadow .2s, border-color .2s, background .2s;
+}
+#seltema:focus,
+#selTitulo:focus,
+#selconteudo:focus {
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 35%, transparent);
+  border-color: var(--accent);
+  outline:none;
+}
+
+/* Seta “de botão” nos selects simples — não quebra os múltiplos */
+#seldisciplina,                 /* já está ok, reforço aqui */
+#seltema:not([multiple]),
+#selTitulo:not([multiple]),
+#selconteudo:not([multiple]) {
+  padding-right: 48px;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 20px 20px;
+}
+
+/* Opções em uma linha com reticências (evita quebra feia) */
+#seltema option,
+#selTitulo option,
+#selconteudo option {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Rolagem mais “clean” nas listas */
+#seltema, #selTitulo, #selconteudo { scrollbar-width: thin; }
+#seltema::-webkit-scrollbar,
+#selTitulo::-webkit-scrollbar,
+#selconteudo::-webkit-scrollbar { height:8px; width:8px; }
+#seltema::-webkit-scrollbar-thumb,
+#selTitulo::-webkit-scrollbar-thumb,
+#selconteudo::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,.25);
+  border-radius: 8px;
+}
+
+/* Botão “ver detalhes” no padrão pill */
+#toggle-conteudo.btn {
+  --h: 34px;
+  height: var(--h);
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+  background: transparent;
+  border: 1px solid rgba(0,0,0,.14);
+  border-radius: 999px;
+  color: var(--text);
+  transition: transform .08s ease, box-shadow .2s ease, background .2s;
+}
+#toggle-conteudo.btn:hover {
+  background: color-mix(in srgb, var(--accent), transparent 90%);
+  transform: translateY(-1px);
+}
+
+/* === Checklist dentro do dropdown .msel === */
+.msel-checklist{
+  list-style: none;
+  margin: .25rem 0 0 0;
+  padding: 0;
+  max-height: 220px;               /* herdará da .msel-body também */
+  overflow: auto;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 7%, #fff);
+}
+
+.msel-checklist li{
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .55rem .75rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+.msel-checklist li:last-child{ border-bottom: 0; }
+
+.msel-checklist input[type="checkbox"]{
+  width: 1.05rem; height: 1.05rem;
+  accent-color: var(--accent);
+  flex: 0 0 auto;
+}
+
+.msel-checklist .item-label{
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.msel-checklist li:hover{
+  background: color-mix(in srgb, var(--accent) 12%, #fff);
+}
+
+/* Botões pílula nos dropdowns */
+.btn.btn--pill{
+  border-radius:999px;
+  padding:.35rem .7rem;
+  border:1px solid #d8dee6;
+  background:#fff;
+}
+.btn.btn--pill:hover{ background:#f5f5f5; }
+
+/* Checklist dentro dos <details class="msel"> */
+.msel-checklist{ list-style:none; margin:0; padding:0; }
+.msel-checklist li{
+  display:flex; align-items:center; gap:.5rem;
+  padding:.35rem .25rem;
+  border-bottom:1px dashed #eee;
+}
+.msel-checklist li:last-child{ border-bottom:none; }
+.msel-checklist input[type="checkbox"]{ width:1rem; height:1rem; }
+.msel .item-label{ flex:1; }
+
+/* ajustes finos */
+.msel summary { user-select: none; }
+.msel[open] .msel-body { box-shadow: 0 6px 16px rgba(2,6,23,.06); }
+
+/* ===========================
+   Layout do Plano de Aula (formato impresso)
+=========================== */
+
+.plano-card h2{
+  margin-top:0;
+  margin-bottom:.75rem;
+}
+
+/* Cabeçalho do plano (título + identificação) */
+.plano-header{
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:.75rem 1rem;
+  background:var(--muted);
+  margin-bottom:1rem;
+}
+
+.plano-title-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:.75rem;
+  margin-bottom:.5rem;
+  font-weight:600;
+}
+
+.plano-title-label{
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  font-size:.85rem;
+}
+
+.plano-title-value{
+  flex:1;
+  text-align:left;
+  font-size:.95rem;
+}
+
+/* Linha de identificação: escola, professor, turma, etc. */
+.plano-id-grid{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0,1fr));
+  gap:.35rem .75rem;
+  font-size:.9rem;
+}
+.plano-id-grid strong{ font-weight:600; }
+
+@media (max-width:900px){
+  .plano-id-grid{
+    grid-template-columns:repeat(2, minmax(0,1fr));
+  }
+}
+@media (max-width:600px){
+  .plano-id-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+/* Corpo do plano: duas colunas organizadas */
+.plano-body{
+  margin-top:.5rem;
+  gap:var(--gap-3);
+}
+
+.plano-body .col label{
+  font-weight:600;
+  margin-top:.5rem;
+}
+
+/* espaço extra gerado via JS, se houver */
+.plano-extra{ margin-bottom:.5rem; }
+
+/* subtítulo "Carga de Aulas" alinhado ao restante */
+.plano-subtitle{
+  margin-top:1.25rem;
+  margin-bottom:.25rem;
+}
+
+/* ações do plano (botões de adicionar/limpar) */
+.plano-actions{ margin:.75rem 0 1rem; }
+
+/* plano acumulado com leve separação visual */
+.plano-acumulado-wrap{ margin-top:.75rem; }
+.plano-acumulado-wrap summary{ cursor:pointer; }
+
+/* Dropdown de exportação no topo */
+.export-dropdown { position: relative; }
+.export-dropdown > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.export-dropdown > summary::-webkit-details-marker { display: none; }
+
+/* =====================================
+   PAINEL DE CHECKLISTS (área vermelha)
+   → 2 colunas, cards iguais aos combos
+===================================== */
+#painel-checklists{
+  margin-top: 16px;
+  padding: 16px 12px 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 20px;
+}
+
+@media (max-width: 1100px){
+  #painel-checklists{
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Cada bloco é um <details class="msel"> estilizado como card */
+#painel-checklists .painel-bloco{
+  padding: 0;
+  background: var(--muted);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+/* summary reaproveita o visual .msel, mas ocupa 100% */
+#painel-checklists .painel-bloco > summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 0 16px;
+  height: var(--control-h);
+  border-radius: 12px;
+  border: none;
+  background: color-mix(in srgb, var(--accent) 6%, var(--muted));
+  font-size: .95rem;
+  font-weight: 600;
+}
+
+#painel-checklists .painel-bloco > summary::after{
+  /* usamos a mesma setinha do .msel padrão */
+  content:"";
+  width:.85em; height:.85em; margin-left:10px;
+  border-right:2px solid currentColor;
+  border-bottom:2px solid currentColor;
+  transform:rotate(45deg);
+  opacity:.85;
+  transition: transform .2s ease, opacity .2s ease;
+}
+
+#painel-checklists .painel-bloco[open] > summary{
+  border-bottom-left-radius:0;
+  border-bottom-right-radius:0;
+  background:#fff;
+}
+#painel-checklists .painel-bloco[open] > summary::after{
+  transform: rotate(-135deg);
+  opacity:1;
+}
+
+/* corpo sem dupla borda, alinhado ao card */
+#painel-checklists .painel-bloco .msel-body{
+  border: none;
+  border-top: 1px solid var(--border);
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  background: #fff;
+  padding: .6rem .75rem .75rem;
+}
+
+/* checklist interna com boa respiração */
+#painel-checklists .msel-checklist{
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 260px;
+  overflow: auto;
+  border-radius: 10px;
+  border: 1px dashed var(--border);
+  background: color-mix(in srgb, var(--accent) 5%, #fff);
+}
+
+#painel-checklists .msel-checklist li{
+  display:flex;
+  align-items:center;
+  gap:.5rem;
+  padding:.45rem .65rem;
+  border-bottom:1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+#painel-checklists .msel-checklist li:last-child{
+  border-bottom:none;
+}
+
+#painel-checklists .msel-checklist input[type="checkbox"]{
+  flex:0 0 auto;
+  width:1rem;
+  height:1rem;
+  accent-color: var(--accent);
+}
+#painel-checklists .msel-checklist .item-label{
+  flex:1 1 auto;
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+#painel-checklists .msel-checklist li:hover{
+  background: color-mix(in srgb, var(--accent) 10%, #fff);
+}
+
+
+.export-menu {
+  margin-top: .5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+
+/* ========== Botões de etapa (Fund I / Fund II / Médio) mais largos ========== */
+.segmented{
+  width: 100%;
+  max-width: 900px;      /* ocupa mais da largura do card */
+}
+
+.segmented .seg{
+  flex: 1 1 0;
+  min-width: 200px;      /* cada botão maior */
+  padding: 0.75rem 1.6rem;
+  font-size: 1rem;       /* texto um pouco maior */
+}
+
+
+/* =========================================
+ * PATCH-GLOBAL-LAYOUT (sem mexer em #layout-main)
+ * ======================================= */
+.app-root,
+body > main {
+  max-width: 1600px;
+  width: 95vw;
+  margin: 0 auto;
+}
+
+/* Reduz um pouco o padding lateral dos cards para caber mais conteúdo */
+.card { padding-inline: 18px; }
+
+/* =========================================
+ * TOOLTIP (label-with-help)
+ * ======================================= */
+.label-with-help{
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+.help-icon{
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: .8rem;
+  cursor: pointer;
+  opacity: .7;
+}
+.help-icon:hover{ opacity: 1; }
+
+/* Tooltip */
+.help-icon::after{
+  content: attr(data-help);
+  position: absolute;
+  z-index: 20;
+  max-width: 260px;
+  padding: .5rem .75rem;
+  border-radius: .5rem;
+  font-size: .75rem;
+  line-height: 1.3;
+  background: #0f172a;
+  color: #fff;
+  box-shadow: 0 10px 25px rgba(15,23,42,.35);
+  opacity: 0;
+  transform: translate(-50%, -10px);
+  pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+}
+
+/* posição relativa para o pai imediato */
+.label-with-help,
+.help-icon{ position: relative; }
+
+/* mostra tooltip no hover/focus */
+.help-icon:hover::after,
+.help-icon:focus-visible::after{
+  opacity: 1;
+  transform: translate(-50%, -16px);
+}
+
+/* =========================================
+ * CONTAINER – versão simples (sem grid antigo)
+ * ======================================= */
+.container{
+  max-width: 1600px;     /* aumenta a largura útil (ajuste se quiser) */
+  width: 100%;
+  margin: 0 auto;
+  padding: 16px;
+}
+/* Ocultar visualmente o bloco Aula, mas manter no DOM */
+.campo-aula {
+  display: none !important;
+}
+
+/* =====================================
+ * PAINEL DE CHECKLISTS (área vermelha)
+ * ===================================== */
+#painel-checklists {
+  margin-top: 24px;
+  padding: 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px 24px;
+}
+
+@media (max-width: 900px) {
+  #painel-checklists {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Blocos internos (Metodologia, Recursos, etc.) */
+.painel-bloco {
+  background: var(--muted);
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.painel-bloco h3 {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+/* Lista de checkboxes dentro de cada bloco */
+.painel-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.painel-checklist label {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid var(--border);
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+/* =====================================
+ * LINHA AMARELA – Etapa / Disciplina / Tema / Instrução
+ * (deixar os quatro campos bem distribuídos)
+ * ===================================== */
+.linha-topo {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 1100px) {
+  .linha-topo {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .linha-topo {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =====================================
+ * BOTÕES FUND I / FUND II / MÉDIO – mais largos e bonitos
+ * ===================================== */
+.segmented {
+  width: 100%;
+  max-width: 900px;    /* ocupa bem a largura do card */
+  gap: 12px;
+}
+
+.segmented .seg {
+  flex: 1 1 0;
+  min-width: 220px;
+  padding: 0.9rem 1.4rem;
+  font-size: 1rem;
+  border-radius: 12px;
+}
+
+/* =====================================
+ * (OPCIONAL) Esconder o bloco antigo
+ * de “Trabalhar TODO o tema / Novo plano”
+ * – depois que você der uma id pra ele.
+ * ===================================== */
+/* Exemplo: se você envolver esse trecho em
+ * <div id="bloco-plano-antigo"> ... </div>
+ * é só descomentar abaixo:
+ */
+/*
+#bloco-plano-antigo {
+  display: none !important;
+}
+*/
+/* ===========================================================
+   LAYOUT DOS FILTROS DO PLANO (GRID 12 COLUNAS)
+   Campos na ordem:
+   1) Escola
+   2) Turma
+   3) Ano letivo
+   4) Data
+   5) Professor(a)
+   6) Etapa
+   7) Componente Curricular
+   8) Tema / Unidade
+   9) Instrução da aula
+   10) Habilidades (BNCC)
+   11) Objeto do Conhecimento (BNCC)
+   12) Títulos da Aula
+   13) Conteúdo
+   14) Aula
+   =========================================================== */
+
+.filtros-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 0.75rem 1.25rem;
+  align-items: flex-end;
+}
+
+/* Linha 1: Escola / Turma / Ano / Data (4 campos) */
+.filtros-grid .campo:nth-of-type(1)  { grid-column: 1  / span 3; }
+.filtros-grid .campo:nth-of-type(2)  { grid-column: 4  / span 3; }
+.filtros-grid .campo:nth-of-type(3)  { grid-column: 7  / span 3; }
+.filtros-grid .campo:nth-of-type(4)  { grid-column: 10 / span 3; }
+
+/* Linha 2: Professor(a) / Etapa / Componente (3 campos) */
+.filtros-grid .campo:nth-of-type(5)  { grid-column: 1  / span 6; }  /* Professor(a) mais largo */
+.filtros-grid .campo:nth-of-type(6)  { grid-column: 7  / span 3; }  /* Etapa */
+.filtros-grid .campo:nth-of-type(7)  { grid-column: 10 / span 3; }  /* Componente Curricular */
+
+/* Linha 3: Tema / Unidade + Instrução (2 campos) */
+.filtros-grid .campo:nth-of-type(8)  { grid-column: 1  / span 6; }  /* Tema / Unidade */
+.filtros-grid .campo:nth-of-type(9)  { grid-column: 7  / span 6; }  /* Instrução da aula */
+
+/* Habilidades (BNCC) – linha inteira */
+.filtros-grid .campo:nth-of-type(10) { grid-column: 1  / span 12; }
+
+/* 🔹 Linha 4: Objeto / Títulos / Conteúdo – 3 colunas iguais */
+.filtros-grid .campo:nth-of-type(11) { grid-column: 1  / span 4; }  /* Objeto do Conhecimento */
+.filtros-grid .campo:nth-of-type(12) { grid-column: 5  / span 4; }  /* Títulos da Aula */
+.filtros-grid .campo:nth-of-type(13) { grid-column: 9  / span 4; }  /* Conteúdo */
+
+/* Aula – linha inteira (mantida por compatibilidade) */
+.filtros-grid .campo:nth-of-type(14) { grid-column: 1  / span 12; }
+
+/* Responsivo: em telas menores, empilha tudo em 1 coluna */
+@media (max-width: 960px) {
+  .filtros-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .filtros-grid .campo {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+/* ===========================
+   Painel de blocos do plano
+   (Metodologia, Recursos, etc.)
+   =========================== */
+
+#painel-checklists{
+  display: grid;
+  gap: 12px;
+}
+
+/* Mobile / telas menores: tudo em 1 coluna */
+@media (max-width: 1600px){
+  #painel-checklists{
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Desktop: 3 colunas  →  6 blocos em 2 linhas */
+@media (min-width: 1600px){
+  #painel-checklists{
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Garante que cada bloco ocupe bem a célula do grid */
+#painel-checklists .painel-bloco{
+  width: 100%;
+  margin: 0;
+}
+
+/* ================================
+ * PATCH-PLANO – FOLHA ÚNICA (tipo Word)
+ * Aplica APENAS no card "Plano de Aula"
+ * ================================ */
+
+/* O card do plano fica como uma folha centralizada */
+#card-plano {
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* Dentro do Plano de Aula, ignorar o grid-2 em colunas */
+#card-plano .plano-body {
+  display: block !important;          /* coluna única */
+}
+
+/* Garante que qualquer .grid-2 ali não crie 2 colunas */
+#card-plano .plano-body.grid-2 {
+  grid-template-columns: 1fr !important;
+}
+
+/* As duas .col viram seções em full width, uma abaixo da outra */
+#card-plano .plano-body .col {
+  width: 100%;
+}
+
+/* Separador visual entre o primeiro bloco e o segundo */
+#card-plano .plano-body .col + .col {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed var(--border);
+}
+
+/* ================================
+ * PATCH-PLANO – TEXTAREAS EM FOLHA ÚNICA
+ * ================================ */
+
+/* Atua só dentro do card Plano de Aula */
+#card-plano .plano-body textarea {
+  border: none !important;                 /* tira a borda da caixinha */
+  border-radius: 0 !important;             /* tira cantos arredondados */
+  background: transparent !important;      /* mesma cor do fundo */
+  box-shadow: none !important;             /* sem sombra de campo */
+  padding: 0.35rem 0 0.75rem 0 !important; /* só espaço vertical, sem recuo lateral */
+  min-height: 2.5rem;                      /* altura mínima bem discreta */
+  resize: vertical;                        /* ainda pode aumentar se quiser */
+}
+
+/* Foco mais discreto: só sublinha a linha atual */
+#card-plano .plano-body textarea:focus {
+  outline: none !important;
+  border-bottom: 1px solid var(--accent, #2563eb);
+}
+
+/* Espaçamento dos rótulos para parecer seções de um documento */
+#card-plano .plano-body label {
+  display: block;
+  margin-top: 0.9rem;
+  margin-bottom: 0.15rem;
+  font-weight: 600;
+}
+
+/* Primeiro label lá em cima sem margem extra */
+#card-plano .plano-body .col:first-child label:first-of-type {
+  margin-top: 0;
+}
+
+/* ============================================
+   PLANO DE AULA – esconder "Selecionar tudo"
+   e aumentar a largura do card
+   ============================================ */
+
+/* 1) Esconde as linhas com os checkboxes internos
+      do Plano de Aula (Metodologia / Recursos)  */
+#card-plano .row:has(#metod-select-all),
+#card-plano .row:has(#recursos-select-all) {
+  display: none;
+}
+
+/* 2) Aumenta a largura total do card Plano de Aula,
+      para ficar mais parecido com uma folha A4 no centro */
+#card-plano {
+  max-width: 1700px;      /* você pode subir para 1180 / 1200 se quiser ainda maior */
+  margin-inline: auto;    /* centraliza dentro do container */
+}
+
+/* Garante que o corpo do plano use toda a largura do card */
+#card-plano .plano-body {
+  max-width: 100%;
+}
+
+/* ================================
+   📄 Plano de Aula — Folha Única
+   ================================ */
+
+/* Aumenta a largura máxima do card */
+.plano-card {
+  max-width: 1700px !important;   /* ← ajuste aqui se quiser maior */
+  margin: 0 auto;                 /* centraliza */
+}
+
+/* Remove completamente o grid de 2 colunas */
+.plano-body,
+.plano-body.grid-2 {
+  display: block !important;
+  grid-template-columns: none !important;
+  gap: 0 !important;
+}
+
+/* Cada bloco ocupa a página inteira */
+.plano-body .col {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Textareas em modo “folha contínua” */
+.plano-body textarea {
+  width: 100% !important;
+  min-height: 90px;
+  resize: vertical;
+  border-radius: 6px;
+  background: #fafafa;
+}
+
+/* Remove borda dupla entre seções */
+.plano-body label {
+  display: block;
+  margin-top: 1.4rem;
+  font-weight: 600;
+}
+
+/* Espaçamento mais elegante entre seções */
+.plano-body textarea,
+.plano-body .checklist {
+  margin-top: 0.4rem;
+  margin-bottom: 0.8rem;
+}
+
+
+/* =========================================
+ * PATCH-LARGURA-PLANO-DE-AULA
+ * Setor 2 com a mesma largura do Setor 1
+ * ========================================= */
+
+/* A coluna de conteúdo ocupa toda a largura disponível */
+#layout-main > section.content {
+  width: 100%;
+}
+
+/* O card "Plano de Aula" preenche 100% da coluna */
+#layout-main > section.content > .plano-card,
+.plano-card {
+  width: 100% !important;
+  max-width: 100% !important;  /* não limita mais a 1180/1600, segue o container */
+  margin-inline: 0;            /* tira qualquer estreitamento lateral */
+}

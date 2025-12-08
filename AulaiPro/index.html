@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <!-- 1) APLICA TEMA/PAL/ESCALA ANTES DE PINTAR -->
+  <script>
+  (function(){
+    const PALETTES = {
+      verde:'#22c55e', azul:'#3b82f6', roxo:'#a855f7',
+      laranja:'#f59e0b', rosa:'#ec4899', cinza:'#6b7280'
+    };
+    const st   = JSON.parse(localStorage.getItem('lessonai.appearance') || '{}');
+    const mode = st.mode || 'light';
+    const pal  = st.palette || 'azul';
+    const fs   = st.fs || 100;
+    document.documentElement.setAttribute('data-theme', mode);
+    document.documentElement.style.setProperty('--accent', PALETTES[pal] || '#3b82f6');
+    document.documentElement.style.fontSize = (fs/100) + 'em';
+  })();
+  </script>
+
+  <!-- 2) META + TÍTULO + CSS EXTERNO -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LessonAI — Página Inicial</title>
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+
+  <!-- 3) CSS EMBUTIDO (dentro de <style> e FECHANDO com </style>) -->
+  <style>
+      /* ===== Design tokens (claro/escuro + acento) ===== */
+    :root{
+      color-scheme: light dark;
+      --bg:#ffffff;
+      --text:#0f172a;
+      --muted:#475569;
+      --card:#f8fafc;
+      --border:#e5e7eb;
+      --accent:#3b82f6;
+      --accent-contrast:#ffffff;
+    }
+
+    [data-theme="dark"]{
+      --bg:#0b1220;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --card:#121a2a;
+      --border:#1f2937;
+      --accent-contrast:#0b1220;
+    }
+
+    /* Fundo da página levemente tingido pela cor de destaque */
+    html{
+      font-size:1em;
+      background:color-mix(in oklab, var(--accent) 7%, var(--bg));
+      color:var(--text);
+    }
+
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:transparent;
+    }
+
+    a{ color:var(--accent); }
+
+
+    a{ color:var(--accent); }
+    :focus-visible{ outline:3px solid var(--accent); outline-offset:2px; }
+
+    header{ padding:24px 16px; border-bottom:1px solid var(--border); background:var(--bg); }
+    .wrap{ max-width:1000px; margin:0 auto; padding:24px 16px; }
+    h1{ font-size:clamp(1.4rem, 1.2rem + 1vw, 2rem); margin:0; }
+    h2{ margin:0 0 12px; }
+    .topbar{ display:flex; gap:12px; align-items:center; justify-content:space-between; margin-top:8px; flex-wrap:wrap; }
+    .badge{ display:inline-flex; align-items:center; gap:.5rem; padding:.25rem .5rem; border-radius:999px; font-size:.85rem; border:1px solid var(--border); background:color-mix(in oklab, var(--text) 4%, var(--bg) 96%); }
+
+    .choices{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:16px; }
+    @media (max-width:700px){ .choices{ grid-template-columns:1fr; } }
+
+    .choice{ display:flex; flex-direction:column; gap:12px; padding:20px; border-radius:16px; border:1px solid var(--border); background:var(--card); }
+    .choice h3{ margin:0; font-size:1.2rem; }
+    .choice p{ margin:0; color:var(--muted); }
+
+    .btn{ appearance:none; border:none; cursor:pointer; padding:14px 18px; border-radius:12px; font-weight:600; font-size:1rem; }
+    .btn.primary{ background:var(--accent); color:var(--accent-contrast); }
+    .btn.ghost{ background:transparent; border:1px solid var(--border); color:var(--text); }
+
+    .quicklinks{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:16px; }
+    @media (max-width:900px){ .quicklinks{ grid-template-columns:1fr 1fr; } }
+    @media (max-width:600px){ .quicklinks{ grid-template-columns:1fr; } }
+    .ql-item{ display:flex; flex-direction:column; gap:10px; padding:16px; border-radius:14px; border:1px solid var(--border); background:var(--card); }
+    .ql-item h3{ margin:0; font-size:1.05rem; }
+    .ql-item p{ margin:0; color:var(--muted); font-size:.95rem; }
+    .ql-actions{ display:flex; gap:10px; flex-wrap:wrap; }
+
+        /* ===== Formulário de cadastro (modal) ===== */
+    .cadastro-form{
+      margin-top:10px;
+    }
+    .cadastro-grid{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .cadastro-grid label{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      font-size:.9rem;
+    }
+    .cadastro-grid input,
+    .cadastro-grid select{
+      border-radius:10px;
+      border:1px solid var(--border);
+      padding:8px 10px;
+      font-size:.95rem;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .cadastro-grid-dupla{
+      display:grid;
+      grid-template-columns:2fr 1fr;
+      gap:8px;
+    }
+    @media (max-width:600px){
+      .cadastro-grid-dupla{
+        grid-template-columns:1fr;
+      }
+    }
+
+
+    /* ===== Modal Aparência ===== */
+    .modal-backdrop{ position:fixed; inset:0; background:color-mix(in oklab, var(--text) 30%, transparent); display:none; }
+    .modal{ position:fixed; inset:0; display:none; place-items:center; }
+    .modal[open], .modal-backdrop[open]{ display:grid; }
+    .modal-card{ background:var(--bg); color:var(--text); padding:20px; border-radius:16px; min-width:300px; max-width:520px; border:1px solid var(--border); box-shadow:0 10px 30px color-mix(in oklab, var(--text) 20%, transparent); }
+    .palette-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:8px; margin-block:8px; }
+    .swatch{ width:100%; height:36px; border-radius:10px; border:1px solid var(--border); cursor:pointer; }
+    .swatch[aria-checked=\"true\"]{ outline:3px solid var(--accent); }
+  </style>
+</head>
+
+<body data-api-base="http://127.0.0.1:8000">
+  <noscript>Habilite o JavaScript para usar o LessonAI.</noscript>
+  <header>
+    <div class="wrap">
+      <h1>Gerador de Plano de Aula (LessonAI)</h1>
+      <div class="topbar">
+        <div class="muted">Escolha o tipo de plano e siga para a construção.</div>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+          <button id="top-appearance" class="btn" type="button">Aparência</button>
+          <button id="top-config" class="btn" type="button">Configurações</button>
+          <button id="top-help" class="btn" type="button">Ajuda</button>
+          <button id="top-cadastro" class="btn" type="button">Cadastro</button>
+          <span id="backend-status" class="badge">desconectado</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+    <main class="wrap">
+    
+    <!-- Tipo de Plano -->
+    <section style="margin-top:32px">
+      <h2>Tipo de Plano</h2>
+      <div class="choices">
+        <!-- Básico (Fundamental I, II e Médio) -->
+        <article class="choice">
+          <div>
+            <h3>Básico</h3>
+            <p>Fundamental I, Fundamental II e Ensino Médio.</p>
+          </div>
+          <button id="btn-basico" type="button" class="btn primary">
+            Entrar no Plano Básico
+          </button>
+        </article>
+
+        <!-- Itinerário Formativo (em construção) -->
+        <article class="choice">
+          <div>
+            <h3>Itinerário Formativo</h3>
+            <p>Trilhas e percursos do Ensino Médio. (em construção)</p>
+          </div>
+          <button id="btn-itinerario" type="button" class="btn primary">
+            Itinerário (em breve)
+          </button>
+        </article>
+
+        <!-- Técnico (standby / projeção) -->
+        <article class="choice">
+          <div>
+            <h3>Técnico</h3>
+            <p>Cursos técnicos 2º e 3º ano. (em construção)</p>
+          </div>
+          <button id="btn-tecnico" type="button" class="btn primary">
+            Técnico (em breve)
+          </button>
+        </article>
+      </div>
+    </section>
+
+    <!-- Outras Funcionalidades -->
+    <section style="margin-top:32px">
+      <h2>Outras Funcionalidades</h2>
+      <div class="quicklinks">
+        <article class="ql-item">
+          <div>
+            <h3>Planos Salvos</h3>
+            <p>Reabra e edite planos já criados. (em construção)</p>
+          </div>
+          <div class="ql-actions">
+            <button id="btn-saved" class="btn" type="button">Abrir</button>
+          </div>
+        </article>
+
+        <article class="ql-item">
+          <div>
+            <h3>Recursos Didáticos</h3>
+            <p>PDFs, vídeos e links de apoio. (em construção)</p>
+          </div>
+          <div class="ql-actions">
+            <button id="btn-recursos" class="btn" type="button">Ver recursos</button>
+          </div>
+        </article>
+
+        <article class="ql-item">
+          <div>
+            <h3>Exportações Rápidas</h3>
+            <p>Exportar planos para DOCX, PDF, XLSX ou JSON. (em construção)</p>
+          </div>
+          <div class="ql-actions">
+            <button id="btn-export" class="btn" type="button">Abrir opções</button>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+
+  <footer>
+    <div class="wrap">
+      <div>© <span id="year"></span> LessonAI — uso educativo.</div>
+    </div>
+  </footer>
+
+    <!-- ===== Modal Aparência ===== -->
+  <div id="backdrop" class="modal-backdrop" hidden></div>
+  <div id="dlg-appearance" class="modal" hidden>
+    <div class="modal-card">
+      <h2 style="margin-top:0">Aparência</h2>
+
+      <div style="display:flex; gap:16px; align-items:center; margin-bottom:8px">
+        <label><input type="radio" name="mode" value="light"> Claro</label>
+        <label><input type="radio" name="mode" value="dark"> Escuro</label>
+      </div>
+
+      <div>
+        <div class="muted" style="margin-bottom:6px">Cor de destaque</div>
+        <div class="palette-grid">
+          <button class="swatch" data-palette="verde"   style="background:#22c55e" title="Verde"></button>
+          <button class="swatch" data-palette="azul"    style="background:#3b82f6" title="Azul"></button>
+          <button class="swatch" data-palette="roxo"    style="background:#a855f7" title="Roxo"></button>
+          <button class="swatch" data-palette="laranja" style="background:#f59e0b" title="Laranja"></button>
+          <button class="swatch" data-palette="rosa"    style="background:#ec4899" title="Rosa"></button>
+          <button class="swatch" data-palette="cinza"   style="background:#6b7280" title="Cinza"></button>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <label class="muted" for="font-scale">Tamanho da fonte</label>
+        <input type="range" id="font-scale" min="90" max="115" step="1" value="100" style="width:100%" />
+      </div>
+
+      <div style="margin-top:14px; display:flex; gap:8px; justify-content:flex-end">
+        <button id="btn-close-appearance" class="btn" type="button">Fechar</button>
+        <button id="btn-apply-appearance" class="btn primary" type="button">Aplicar</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ===== Modal Cadastro ===== -->
+  <div id="dlg-cadastro" class="modal" hidden>
+    <div class="modal-card">
+      <h2 style="margin-top:0">Cadastro</h2>
+      <p class="muted" style="margin-bottom:8px">
+        Preencha alguns dados para que o LessonAI personalize sua experiência.
+        Se preferir, você pode informar apenas o e-mail.
+      </p>
+
+      <form id="form-cadastro" class="cadastro-form">
+        <div class="cadastro-grid">
+          <label>
+            <span>Nome completo</span>
+            <input type="text" id="cad-nome" name="nome" autocomplete="name" placeholder="Seu nome completo">
+          </label>
+
+          <label>
+            <span>E-mail <small>(obrigatório)</small></span>
+            <input type="email" id="cad-email" name="email" autocomplete="email" placeholder="seuemail@escola.com">
+          </label>
+
+          <label>
+            <span>Disciplina que leciona</span>
+            <input type="text" id="cad-disciplina" name="disciplina" placeholder="Matemática, Física, etc.">
+          </label>
+
+          <label>
+            <span>Escola</span>
+            <input type="text" id="cad-escola" name="escola" placeholder="Nome da escola">
+          </label>
+
+          <div class="cadastro-grid-dupla">
+            <label>
+              <span>Cidade</span>
+              <input type="text" id="cad-cidade" name="cidade" placeholder="Sua cidade">
+            </label>
+            <label>
+              <span>Estado</span>
+              <input type="text" id="cad-estado" name="estado" placeholder="SP, RJ, MG...">
+            </label>
+          </div>
+
+          <label>
+            <span>Etapa em que atua</span>
+            <select id="cad-etapa" name="etapa">
+              <option value="">Selecione...</option>
+              <option value="fundamental_I">Fundamental I</option>
+              <option value="fundamental_II">Fundamental II</option>
+              <option value="medio">Ensino Médio</option>
+              <option value="tecnico">Técnico</option>
+              <option value="outros">Outros</option>
+            </select>
+          </label>
+        </div>
+
+        <p id="cadastro-status" class="muted" style="margin-top:8px"></p>
+
+        <div style="margin-top:14px; display:flex; gap:8px; justify-content:flex-end">
+          <button type="button" id="btn-close-cadastro" class="btn">Fechar</button>
+          <button type="submit" class="btn primary">Salvar cadastro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ===== util =====
+    const $ = (sel)=> document.querySelector(sel);
+
+    const on = (id, cb)=>{ const el = document.getElementById(id); if(el) el.addEventListener('click', cb); };
+
+    // ===== rodapé (ano) =====
+    (function(){
+      const y = document.getElementById('year');
+      if (y) y.textContent = new Date().getFullYear();
+    })();
+
+    // ===== ping backend =====
+    (function(){
+      const API_BASE = document.body.getAttribute('data-api-base') || 'http://127.0.0.1:8000';
+      const statusEl = document.getElementById('backend-status');
+      async function ping(){
+        if (!statusEl) return;
+        try {
+          const url = API_BASE.startsWith('http') ? API_BASE : (location.origin + API_BASE);
+          const r = await fetch(url + '/api/status', { headers: { 'Accept':'application/json' } });
+          const ok = r.ok;
+          statusEl.textContent = ok ? 'conectado' : 'desconectado';
+          statusEl.style.borderColor = ok ? 'oklch(60% 0.12 150)' : '';
+        } catch(e){
+          statusEl.textContent = 'desconectado';
+          statusEl.style.borderColor = '';
+        }
+      }
+      ping();
+    })();
+
+        // ===== cadastro (modal acionado pelo botão do cabeçalho) =====
+    (function(){
+      const STORAGE_KEY = 'lessonai.user';
+
+      const dlg       = document.getElementById('dlg-cadastro');
+      const backdrop  = document.getElementById('backdrop');
+      const form      = document.getElementById('form-cadastro');
+      const statusEl  = document.getElementById('cadastro-status');
+      const btnTop    = document.getElementById('top-cadastro');
+      const btnClose  = document.getElementById('btn-close-cadastro');
+
+      const nomeEl    = document.getElementById('cad-nome');
+      const emailEl   = document.getElementById('cad-email');
+      const discEl    = document.getElementById('cad-disciplina');
+      const escolaEl  = document.getElementById('cad-escola');
+      const cidadeEl  = document.getElementById('cad-cidade');
+      const estadoEl  = document.getElementById('cad-estado');
+      const etapaEl   = document.getElementById('cad-etapa');
+
+      function setStatus(msg, ok = true){
+        if (!statusEl) return;
+        statusEl.textContent = msg || '';
+        statusEl.style.color = ok ? 'inherit' : '#b91c1c';
+      }
+
+      function getUser(){
+        try {
+          return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+        } catch {
+          return null;
+        }
+      }
+
+      function saveUser(user){
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+      }
+
+      function fillFormFromUser(user){
+        if (!user) return;
+        if (nomeEl)   nomeEl.value   = user.nome       || '';
+        if (emailEl)  emailEl.value  = user.email      || '';
+        if (discEl)   discEl.value   = user.disciplina || '';
+        if (escolaEl) escolaEl.value = user.escola     || '';
+        if (cidadeEl) cidadeEl.value = user.cidade     || '';
+        if (estadoEl) estadoEl.value = user.estado     || '';
+        if (etapaEl)  etapaEl.value  = user.etapa      || '';
+      }
+
+      function openCadastro(){
+        const user = getUser();
+        fillFormFromUser(user);
+        setStatus(user ? `Cadastro carregado para ${user.nome || user.email}.` : '');
+        if (dlg && backdrop){
+          dlg.hidden = false;
+          backdrop.hidden = false;
+          dlg.setAttribute('open','');
+          backdrop.setAttribute('open','');
+        }
+      }
+
+      function closeCadastro(){
+        if (dlg){
+          dlg.hidden = true;
+          dlg.removeAttribute('open');
+        }
+        // esconde backdrop se nenhum outro modal estiver aberto
+        if (backdrop){
+          const algumAberto = document.querySelector('.modal[open]');
+          if (!algumAberto){
+            backdrop.hidden = true;
+            backdrop.removeAttribute('open');
+          }
+        }
+      }
+
+      if (btnTop)   btnTop.addEventListener('click', openCadastro);
+      if (btnClose) btnClose.addEventListener('click', closeCadastro);
+
+      if (form){
+        form.addEventListener('submit', (ev)=>{
+          ev.preventDefault();
+          const email = (emailEl?.value || '').trim();
+          const nome  = (nomeEl?.value  || '').trim();
+
+          // Requisito: pelo menos e-mail
+          if (!email){
+            setStatus('Informe pelo menos o e-mail para salvar o cadastro.', false);
+            return;
+          }
+
+          const user = {
+            nome,
+            email,
+            disciplina: discEl?.value   || '',
+            escola:    escolaEl?.value || '',
+            cidade:    cidadeEl?.value || '',
+            estado:    estadoEl?.value || '',
+            etapa:     etapaEl?.value  || '',
+            atualizado_em: new Date().toISOString()
+          };
+
+          try{
+            saveUser(user);
+            setStatus('Cadastro salvo neste dispositivo.');
+            alert('Cadastro salvo neste dispositivo.');
+            closeCadastro();
+          } catch(e){
+            console.error(e);
+            setStatus('Não foi possível salvar o cadastro neste navegador.', false);
+          }
+        });
+      }
+    })();
+
+
+    // ===== navegação (Básico / Itinerário / Técnico) =====
+    (function(){
+      const APP_BASICO = '/public/index.html'; // página do plano básico
+
+      on('btn-basico', () => {
+        try {
+          localStorage.setItem('lessonai.tipo', 'basico');
+        } catch {}
+        location.href = APP_BASICO;
+      });
+
+      on('btn-itinerario', () => {
+        alert('Módulo de Itinerário Formativo ainda está em construção.');
+      });
+
+      on('btn-tecnico', () => {
+        alert('Módulo Técnico ainda está em construção.');
+      });
+    })();
+
+    // ===== outras funcionalidades (placeholders) =====
+    (function(){
+      on('btn-saved',    () => alert('Planos Salvos ainda estão em construção.'));
+      on('btn-recursos', () => alert('Recursos Didáticos ainda estão em construção.'));
+      on('btn-export',   () => alert('Exportações Rápidas ainda estão em construção.'));
+    })();
+
+    // ===== aparência (igual ao seu código original) =====
+    (function(){
+      const dlg = document.getElementById('dlg-appearance');
+      const back = document.getElementById('backdrop');
+      const openDlg = ()=>{ dlg.hidden=false; back.hidden=false; dlg.setAttribute('open',''); back.setAttribute('open',''); syncForm(); };
+      const closeDlg = ()=>{ dlg.hidden=true; back.hidden=true; dlg.removeAttribute('open'); back.removeAttribute('open'); };
+      on('top-appearance', openDlg);
+      on('btn-close-appearance', closeDlg);
+
+      const PALETTES = {
+        verde:   { accent: '#22c55e' },
+        azul:    { accent: '#3b82f6' },
+        roxo:    { accent: '#a855f7' },
+        laranja: { accent: '#f59e0b' },
+        rosa:    { accent: '#ec4899' },
+        cinza:   { accent: '#6b7280' }
+      };
+      function applyAppearance(opts){
+        const st = opts || JSON.parse(localStorage.getItem('lessonai.appearance')||'{}');
+        const mode = st.mode || 'light';
+        const pal  = st.palette || 'azul';
+        const fs   = st.fs || 100;
+        document.documentElement.setAttribute('data-theme', mode);
+        document.documentElement.style.setProperty(
+          '--accent',
+          (PALETTES[pal]?.accent || getComputedStyle(document.documentElement).getPropertyValue('--accent') || '#3b82f6')
+        );
+        document.documentElement.style.fontSize = (fs/100)+'em';
+      }
+            function syncForm(){
+        if (!dlg) return;
+        const st = JSON.parse(localStorage.getItem('lessonai.appearance')||'{}');
+        const mode = st.mode || 'light';
+        const pal  = st.palette || 'azul';
+        const fs   = st.fs || 100;
+
+        dlg.querySelectorAll('input[name="mode"]').forEach(x=> {
+          x.checked = (x.value === mode);
+        });
+
+        const slider = dlg.querySelector('#font-scale');
+        if (slider) slider.value = fs;
+
+        dlg.querySelectorAll('.swatch').forEach(s=>{
+          s.setAttribute('aria-checked', String(s.dataset.palette === pal));
+        });
+      }
+
+      dlg?.addEventListener('click', (ev)=>{
+        const t = ev.target;
+        if (t.classList?.contains('swatch')){
+          dlg.querySelectorAll('.swatch').forEach(s=> s.removeAttribute('aria-checked'));
+          t.setAttribute('aria-checked','true');
+        }
+      });
+      on('btn-apply-appearance', ()=>{
+        const mode = dlg.querySelector('input[name="mode"]:checked')?.value || 'light';
+        const fs   = parseInt(dlg.querySelector('#font-scale').value, 10) || 100;
+        const sel  = dlg.querySelector('.swatch[aria-checked="true"]');
+        const palette = sel?.dataset.palette || 'azul';
+        const st = { mode, fs, palette };
+        localStorage.setItem('lessonai.appearance', JSON.stringify(st));
+        applyAppearance(st);
+        closeDlg();
+      });
+      // aplicar preferências salvas ao carregar
+            // aplicar preferências salvas ao carregar
+      applyAppearance();
+
+      // Topo: placeholders
+      on('top-config', ()=> alert('Configurações: preferências do sistema (em breve).'));
+      on('top-help',   ()=> alert('Ajuda: guia rápido do LessonAI (em breve).'));
+      // o botão "Cadastro" (top-cadastro) é tratado no bloco de cadastro
+    })();
+
+
+  </script>
+</body>
+</html>
