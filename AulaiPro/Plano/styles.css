@@ -1688,6 +1688,46 @@ html[data-theme="dark"] .msel-checklist li.is-selected {
     color-mix(in srgb, var(--accent) 35%, transparent) inset !important;
 }
 
+/* =========================================
+ * AJUSTE ESPECÍFICO – campo "Componente Curricular"
+ * (select #seldisciplina)
+ * ========================================= */
+
+/* Base: mesmo tamanho dos outros controles */
+#seldisciplina {
+  height: var(--control-h);
+  font-size: var(--fs-control);
+  border-radius: var(--control-radius);
+  padding: 0 16px;
+}
+
+/* Light – segue a mesma paleta verde suave dos filtros */
+html[data-theme="light"] #seldisciplina {
+  background: color-mix(in srgb, var(--accent) 12%, #f0fdf4);
+  border-color: color-mix(in srgb, var(--accent) 42%, #bbf7d0);
+  color: var(--accent-600);
+}
+
+/* Dark – fundo escuro, texto claro */
+html[data-theme="dark"] #seldisciplina {
+  background: #020617;
+  border-color: #1f2937;
+  color: #e5e7eb;
+}
+
+/* Mantém a setinha personalizada nesse campo também */
+#seldisciplina {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 48px;
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 20px 20px;
+}
+
+
 
 
 
