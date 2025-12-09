@@ -1036,6 +1036,13 @@ body > main {
   }
 }
 
+/* Garante que cada bloco use bem a célula do grid */
+#painel-checklists .painel-bloco{
+  width: 100%;
+  margin: 0;
+}
+
+
 /* Blocos internos (Metodologia, Recursos, etc.) */
 .painel-bloco {
   background: var(--muted);
