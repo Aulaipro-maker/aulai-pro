@@ -18,27 +18,41 @@
   /* escala */
   --font-scale: 1;
 
-  /* acento unificado */
-  --accent: #2563eb;
-  --accent-100: color-mix(in srgb, var(--accent) 15%, var(--bg));
-  --accent-600: color-mix(in srgb, var(--accent) 70%, #000);
+  /* acento unificado – VERDE */
+  --accent:     #16a34a;  /* verde principal */
+  --accent-600: #166534;  /* verde mais escuro */
+  --accent-100: #dcfce7;  /* verde bem clarinho de fundo */
 }
 
 :root[data-theme='light']{
-  --bg:#f7f9fc; --card:#ffffff; --text:#0f172a; --muted:#eef2f7; --border:#e5e7eb;
-  --accent:#2563eb; --accent-600:#1e40af; --accent-100:#e8f0ff;
-  --good:#16a34a; --bad:#ef4444; --warn:#f59e0b;
+  --bg:#f7f9fc;
+  --card:#ffffff;
+  --text:#0f172a;
+  --muted:#eef2f7;
+  --border:#e5e7eb;
+  /* NÃO redefina accent aqui – usa o do :root */
+  --good:#16a34a;
+  --bad:#ef4444;
+  --warn:#f59e0b;
   color-scheme: light;
 }
 
 :root[data-theme='dark']{
-  --bg:#0a0f1a; --card:#0f172a; --text:#e5e7eb; --muted:#0b1220; --border:#1e293b;
-  --accent:#3b82f6; --accent-600:#1d4ed8; --accent-100:#0f1c3a;
-  --good:#22c55e; --bad:#f43f5e; --warn:#fbbf24;
+  --bg:#0a0f1a;
+  --card:#0f172a;
+  --text:#e5e7eb;
+  --muted:#0b1220;
+  --border:#1e293b;
+  --accent:#16a34a;       /* mantém a mesma cor no dark */
+  --accent-600:#22c55e;
+  --accent-100:#0f1c3a;
+  --good:#22c55e;
+  --bad:#f43f5e;
+  --warn:#fbbf24;
   color-scheme: dark;
-  --accent-100: color-mix(in srgb, var(--accent) 25%, var(--bg));
-  --accent-600: color-mix(in srgb, var(--accent) 75%, #000);
 }
+
+
 
 /* =======================================================
    PATCH — Fundo suave da página (mesmo estilo da Home)
@@ -250,12 +264,18 @@ textarea{ min-height:96px; resize:vertical }
 .menu{ display:flex; gap:10px; flex-wrap:wrap }
 
 /* selects: contraste adequado no campo e dropdown */
+/* selects: contraste adequado no campo e dropdown */
 :root { --select-bg: var(--card); --select-fg: var(--text); }
-select { background-color:var(--select-bg) !important; color:var(--select-fg) !important; border:1px solid var(--border); }
-select option { background-color:var(--select-bg); color:var(--select-fg); }
+select {
+  background-color: var(--select-bg);
+  color: var(--select-fg);
+  border: 1px solid var(--border);
+}
+select option { background-color: var(--select-bg); color: var(--select-fg); }
 select:disabled { opacity:.7 }
 select option[disabled] { color:#9ca3af }
 optgroup { color:var(--select-fg) }
+
 
 /* ===========================
    Topbar / menus
@@ -345,23 +365,43 @@ html[data-theme="dark"] .btn:hover {
   background: color-mix(in srgb, var(--accent) 30%, #0f172a);
 }
 
-/* Botões mais vivos no modo claro */
-html[data-theme="light"] .btn {
-  background: color-mix(in srgb, var(--accent) 10%, #f9fafb);
+/* Tema claro – TODOS os botões com a mesma paleta verde */
+html[data-theme="light"] .btn{
+  background: var(--accent-100);
   color: var(--accent-600);
-  border-color: color-mix(in srgb, var(--accent) 35%, #e5e7eb);
+  border-color: color-mix(in srgb, var(--accent) 55%, #bbf7d0);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, .18);
 }
 
-/* Ghost no light com cara de marca */
-html[data-theme="light"] .btn--ghost {
-  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
-  border-color: color-mix(in srgb, var(--accent) 30%, #e5e7eb);
-  color: var(--accent-600);
+html[data-theme="light"] .btn:hover{
+  background: color-mix(in srgb, var(--accent) 28%, #f0fdf4);
+  box-shadow: 0 7px 18px rgba(22, 163, 74, .25);
 }
 
-html[data-theme="light"] .btn--ghost:hover {
-  background: color-mix(in srgb, var(--accent) 10%, #ffffff);
+/* Principal – Aparência */
+html[data-theme="light"] .btn--primary{
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent-600);
 }
+
+html[data-theme="light"] .btn--primary:hover{
+  background: color-mix(in srgb, var(--accent) 90%, #14532d);
+}
+
+/* Secundários – Exporte etc. */
+html[data-theme="light"] .btn--soft,
+html[data-theme="light"] .btn--ghost{
+  background: color-mix(in srgb, var(--accent) 14%, #f0fdf4);
+  color: var(--accent-600);
+  border-color: color-mix(in srgb, var(--accent) 55%, #bbf7d0);
+}
+
+html[data-theme="light"] .btn--soft:hover,
+html[data-theme="light"] .btn--ghost:hover{
+  background: color-mix(in srgb, var(--accent) 24%, #eafff3);
+}
+
 
 /* ===========================
    Controles visuais “cara de botão”
@@ -1331,18 +1371,18 @@ body > main {
 }
 
 /* ======================================================
-   PATCH — Aplique o tema corretamente na página inteira
+   PATCH — Fundo suave + Botões mais fortes por tema
    ====================================================== */
 
-/* Aplica fundo base conforme tema */
+/* base */
 body {
   background: var(--bg) !important;
   color: var(--text) !important;
 }
 
-/* Light → fundo claro com um toque da cor de acento */
+/* Light → fundo com leve tom de acento */
 html[data-theme="light"] body {
-  background: color-mix(in srgb, var(--accent) 6%, #f7f9fc) !important;
+  background: color-mix(in srgb, var(--accent) 8%, #f7f9fc) !important;
 }
 
 /* Dark → fundo escuro suave */
@@ -1350,7 +1390,7 @@ html[data-theme="dark"] body {
   background: color-mix(in srgb, var(--bg) 92%, black) !important;
 }
 
-/* Cards respeitam o tema */
+/* Cards sempre limpos */
 .card,
 .app-header,
 .app-footer,
@@ -1361,14 +1401,158 @@ html[data-theme="dark"] body {
   border-color: var(--border) !important;
 }
 
-/* Botões mais contrastantes no modo escuro */
-html[data-theme="dark"] .btn {
-  background: color-mix(in srgb, var(--accent) 20%, #0f172a);
-  color: #e5e7eb;
-  border-color: color-mix(in srgb, var(--accent) 40%, #000);
+
+/* ======================================================
+   PATCH – Botões de faixa (Metodologia, Recursos, etc.)
+   Deixar mais escuros e com cara de botão
+   ====================================================== */
+
+/* Resumo dos <details class="msel"> dentro do painel */
+#painel-checklists .painel-bloco > summary,
+.msel > summary {
+  background: color-mix(in srgb, var(--accent) 10%, var(--muted)) !important;
+  color: var(--accent-600) !important;
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border)) !important;
 }
 
-html[data-theme="dark"] .btn:hover {
-  background: color-mix(in srgb, var(--accent) 30%, #0f172a);
+/* Hover mais forte */
+#painel-checklists .painel-bloco > summary:hover,
+.msel > summary:hover {
+  background: color-mix(in srgb, var(--accent) 18%, var(--muted)) !important;
+  box-shadow: 0 6px 14px rgba(0,0,0,.09);
+  transform: translateY(-1px);
 }
+
+/* ======================================================
+   PATCH – Botões principais (Aparência / Exporte)
+   ====================================================== */
+
+/* Todos os botões dentro da .toolbar ficam com preenchimento forte */
+.toolbar .btn {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 6px 16px rgba(0,0,0,.15);
+}
+
+.toolbar .btn:hover {
+  filter: saturate(1.05) brightness(1.02);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(0,0,0,.18);
+}
+
+/* Se algum deles usar .btn--ghost ou .btn--soft, força o preenchimento */
+.toolbar .btn.btn--ghost,
+.toolbar .btn.btn--soft {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border-color: var(--accent) !important;
+}
+
+/* ======================================================
+   PATCH – Filtros de cima com preenchimento suave
+   (Tema / Unidade, Habilidades, Objeto, Títulos, Conteúdo)
+   ====================================================== */
+
+
+/* Multiselects (detalhes/summary) das faixas cinza */
+.filtros-grid .campo .msel > summary {
+  background: color-mix(in srgb, var(--accent) 14%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  color: var(--accent-600);
+}
+
+.filtros-grid .campo .msel > summary:hover {
+  background: color-mix(in srgb, var(--accent) 22%, #ffffff);
+  box-shadow: 0 6px 16px rgba(0,0,0,.12);
+  transform: translateY(-1px);
+}
+
+/* Mantém o corpo do dropdown branco, pra não pesar */
+.filtros-grid .campo .msel .msel-body {
+  background: #fff;
+}
+
+/* 1) Paleta única para o tema claro */
+:root[data-theme="light"]{
+  --accent:     #16a34a;  /* verde principal */
+  --accent-600: #166534;  /* verde mais escuro */
+  --accent-100: #dcfce7;  /* verde bem clarinho de fundo */
+}
+
+
+/* 2) Botões base (Aparência, Exporte, etc.) */
+html[data-theme="light"] .btn{
+  background: var(--accent-100);
+  color: var(--accent-600);
+  border-color: color-mix(in srgb, var(--accent) 55%, #bbf7d0);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, .18);
+}
+
+html[data-theme="light"] .btn:hover{
+  background: color-mix(in srgb, var(--accent) 28%, #f0fdf4);
+  box-shadow: 0 7px 18px rgba(22, 163, 74, .25);
+}
+
+/* 3) Botão principal (Aparência) – verde bem preenchido */
+html[data-theme="light"] .btn--primary{
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent-600);
+}
+
+html[data-theme="light"] .btn--primary:hover{
+  background: color-mix(in srgb, var(--accent) 90%, #14532d);
+}
+
+/* 4) Botões secundários (Exporte, etc.) – mesma cor, só mais suave */
+html[data-theme="light"] .btn--soft,
+html[data-theme="light"] .btn--ghost{
+  background: color-mix(in srgb, var(--accent) 14%, #f0fdf4);
+  color: var(--accent-600);
+  border-color: color-mix(in srgb, var(--accent) 55%, #bbf7d0);
+}
+
+html[data-theme="light"] .btn--soft:hover,
+html[data-theme="light"] .btn--ghost:hover{
+  background: color-mix(in srgb, var(--accent) 24%, #eafff3);
+}
+
+/* 5) Botões de ETAPA (segmented) com a mesma paleta */
+html[data-theme="light"] .segmented{
+  background: color-mix(in srgb, var(--accent) 8%, #f0fdf4);
+  border-color: color-mix(in srgb, var(--accent) 45%, #bbf7d0);
+}
+
+html[data-theme="light"] .segmented .seg{
+  background: var(--accent-100);
+  color: var(--accent-600);
+  border: none;
+  border-radius: 999px;
+  margin: 4px;
+}
+
+html[data-theme="light"] .segmented .seg:hover{
+  background: color-mix(in srgb, var(--accent) 18%, #f0fdf4);
+}
+
+/* ativo = etapa selecionada (Básico / Itinerário / Técnico) */
+html[data-theme="light"] .segmented .seg.active{
+  background: var(--accent);
+  color: #fff;
+}
+
+
+/* 6) Campos de ETAPA / MÉDIO e filtros com preenchimento igual */
+html[data-theme="light"] .filtros-grid .campo select,
+html[data-theme="light"] .filtros-grid .campo input[type="text"],
+html[data-theme="light"] .filtros-grid .campo input[type="date"],
+html[data-theme="light"] .filtros-grid .campo .msel > summary{
+  background: color-mix(in srgb, var(--accent) 12%, #f0fdf4);
+  border-color: color-mix(in srgb, var(--accent) 42%, #bbf7d0);
+}
+
+
+
+
 
