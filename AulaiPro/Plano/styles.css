@@ -1529,6 +1529,57 @@ html[data-theme="light"] .filtros-grid .campo .msel > summary{
   background: color-mix(in srgb, var(--accent) 12%, #f0fdf4);
   border-color: color-mix(in srgb, var(--accent) 42%, #bbf7d0);
 }
+/* =========================================
+ * DARK MODE – correção geral das caixas
+ * de listas e filtros (BNCC, Metodologia, etc.)
+ * ========================================= */
+
+/* Caixas de filtros tipo "control" (inclusive dentro de detalhes) */
+html[data-theme="dark"] .control,
+html[data-theme="dark"] .control--buttony,
+html[data-theme="dark"] #search-tema,
+html[data-theme="dark"] #search-titulo,
+html[data-theme="dark"] #search-conteudo {
+  background: #020617 !important;
+  color: #e5e7eb !important;
+  border-color: #1f2937 !important;
+}
+
+/* Listas de opções tipo pílula / cartões */
+html[data-theme="dark"] .msel .option-list,
+html[data-theme="dark"] .msel-checklist,
+html[data-theme="dark"] .checklist,
+html[data-theme="dark"] .list-thin {
+  background: color-mix(in srgb, var(--accent) 16%, #020617) !important;
+  border-color: #1f2937 !important;
+}
+
+/* Cada item dentro dessas listas (habilidades, metodologias, etc.) */
+html[data-theme="dark"] .option-item,
+html[data-theme="dark"] .msel-checklist li,
+html[data-theme="dark"] .checklist label,
+html[data-theme="dark"] .list-thin .item,
+html[data-theme="dark"] .painel-checklist label {
+  background: #020617 !important;
+  color: #e5e7eb !important;
+  border-color: #1f2937 !important;
+}
+
+/* Hover/selecionado — dá um leve destaque em verde */
+html[data-theme="dark"] .option-item:hover,
+html[data-theme="dark"] .msel-checklist li:hover,
+html[data-theme="dark"] .checklist label:hover,
+html[data-theme="dark"] .list-thin .item:hover {
+  background: color-mix(in srgb, var(--accent) 24%, #020617) !important;
+}
+
+html[data-theme="dark"] .option-item.is-selected,
+html[data-theme="dark"] .msel-checklist li.is-selected {
+  background: color-mix(in srgb, var(--accent) 35%, #022c22) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--accent) 35%, transparent) inset !important;
+}
 
 
 
