@@ -40,6 +40,36 @@
   --accent-600: color-mix(in srgb, var(--accent) 75%, #000);
 }
 
+/* =======================================================
+   PATCH — Fundo suave da página (mesmo estilo da Home)
+   ======================================================= */
+
+/* fundo geral */
+body {
+  background: var(--bg) !important;
+  color: var(--text);
+}
+
+/* fundo mais suave atrás dos cards (efeito "camada") */
+html[data-theme='light'] body {
+  background: color-mix(in srgb, var(--bg) 85%, white);
+}
+
+html[data-theme='dark'] body {
+  background: color-mix(in srgb, var(--bg) 92%, black);
+}
+
+/* mantém cards limpos, sem interferir no fundo */
+.card,
+.app-header,
+.app-footer,
+#layout-main .card {
+  background: var(--card) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+
 /* fonte base */
 html { font-size: calc(16px * var(--font-scale)); }
 
