@@ -1036,13 +1036,6 @@ body > main {
   }
 }
 
-/* Garante que cada bloco use bem a célula do grid */
-#painel-checklists .painel-bloco{
-  width: 100%;
-  margin: 0;
-}
-
-
 /* Blocos internos (Metodologia, Recursos, etc.) */
 .painel-bloco {
   background: var(--muted);
@@ -1190,6 +1183,35 @@ body > main {
   }
 }
 
+/* ===========================
+   Painel de blocos do plano
+   (Metodologia, Recursos, etc.)
+   =========================== */
+
+#painel-checklists{
+  display: grid;
+  gap: 12px;
+}
+
+/* Mobile / telas menores: tudo em 1 coluna */
+@media (max-width: 1600px){
+  #painel-checklists{
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Desktop: 3 colunas  →  6 blocos em 2 linhas */
+@media (min-width: 1600px){
+  #painel-checklists{
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Garante que cada bloco ocupe bem a célula do grid */
+#painel-checklists .painel-bloco{
+  width: 100%;
+  margin: 0;
+}
 
 /* ================================
  * PATCH-PLANO – FOLHA ÚNICA (tipo Word)
@@ -1529,6 +1551,91 @@ html[data-theme="light"] .filtros-grid .campo .msel > summary{
   background: color-mix(in srgb, var(--accent) 12%, #f0fdf4);
   border-color: color-mix(in srgb, var(--accent) 42%, #bbf7d0);
 }
+
+/* =========================================
+ * DARK MODE – campos legíveis (sem fundo branco)
+ * ========================================= */
+
+/* 1) Listas múltiplas (Temas, Títulos, Conteúdos) */
+html[data-theme="dark"] #seltema,
+html[data-theme="dark"] #selTitulo,
+html[data-theme="dark"] #selconteudo {
+  background: #020617;          /* fundo escuro */
+  color: #e5e7eb;               /* texto claro */
+  border-color: #1f2937;
+}
+
+/* 2) Caixas internas das listas (option-list e checklists) */
+html[data-theme="dark"] .msel .option-list,
+html[data-theme="dark"] .painel-checklist label {
+  background: color-mix(in srgb, var(--accent) 12%, #020617);
+  color: #e5e7eb;
+  border-color: #1f2937;
+}
+
+/* 3) Summary dos blocos (Metodologia, Recursos, etc.) */
+html[data-theme="dark"] #painel-checklists .painel-bloco > summary,
+html[data-theme="dark"] .msel > summary {
+  background: color-mix(in srgb, var(--accent) 20%, #020617);
+  color: #e5e7eb;
+  border-color: color-mix(in srgb, var(--accent) 45%, #000);
+}
+
+/* 4) Corpo dos dropdowns dos blocos */
+html[data-theme="dark"] #painel-checklists .painel-bloco .msel-body,
+html[data-theme="dark"] .msel .msel-body {
+  background: #020617;
+  border-color: #1f2937;
+}
+
+/* 5) Inputs e textareas genéricos que ainda ficaram claros */
+html[data-theme="dark"] input[type="text"],
+html[data-theme="dark"] input[type="date"],
+html[data-theme="dark"] input[type="number"],
+html[data-theme="dark"] textarea {
+  background: #020617;
+  color: #e5e7eb;
+  border-color: #1f2937;
+}
+
+/* Placeholder mais suave no dark */
+html[data-theme="dark"] ::placeholder {
+  color: #9ca3af;
+}
+/* =========================================
+ * DARK MODE – listas internas legíveis
+ * (Metodologia, Recursos, Atividades, etc.)
+ * ========================================= */
+
+/* Fundo da área com os "cartõezinhos" */
+html[data-theme="dark"] .msel .option-list {
+  background: color-mix(in srgb, var(--accent) 18%, #020617);
+  border-color: #1f2937;
+}
+
+/* Cada opção (pílula) dentro das listas */
+html[data-theme="dark"] .option-item {
+  background: #020617;
+  color: #e5e7eb;
+  border-color: #1f2937;
+}
+
+/* Quando a opção está selecionada, destaca em verde */
+html[data-theme="dark"] .option-item.is-selected {
+  background: color-mix(in srgb, var(--accent) 35%, #022c22);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent) inset;
+}
+
+/* Inputs dentro desses blocos (filtro de títulos, conteúdos, etc.)
+   também ficam escuros no dark */
+html[data-theme="dark"] #painel-checklists input[type="text"],
+html[data-theme="dark"] #painel-checklists input[type="search"] {
+  background: #020617;
+  color: #e5e7eb;
+  border-color: #1f2937;
+}
+
 /* =========================================
  * DARK MODE – correção geral das caixas
  * de listas e filtros (BNCC, Metodologia, etc.)
@@ -1580,6 +1687,8 @@ html[data-theme="dark"] .msel-checklist li.is-selected {
   box-shadow: 0 0 0 2px
     color-mix(in srgb, var(--accent) 35%, transparent) inset !important;
 }
+
+
 
 
 
