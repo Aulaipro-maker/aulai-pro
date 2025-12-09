@@ -333,6 +333,36 @@ dialog::backdrop{ background:rgba(0,0,0,.25); }
 }
 .btn--pill:hover{ background: color-mix(in srgb, var(--accent), transparent 90%); transform: translateY(-1px); box-shadow:0 4px 10px rgba(0,0,0,.08); }
 
+
+/* Botões mais contrastantes no modo escuro */
+html[data-theme="dark"] .btn {
+  background: color-mix(in srgb, var(--accent) 20%, #0f172a);
+  color: #e5e7eb;
+  border-color: color-mix(in srgb, var(--accent) 40%, #000);
+}
+
+html[data-theme="dark"] .btn:hover {
+  background: color-mix(in srgb, var(--accent) 30%, #0f172a);
+}
+
+/* Botões mais vivos no modo claro */
+html[data-theme="light"] .btn {
+  background: color-mix(in srgb, var(--accent) 10%, #f9fafb);
+  color: var(--accent-600);
+  border-color: color-mix(in srgb, var(--accent) 35%, #e5e7eb);
+}
+
+/* Ghost no light com cara de marca */
+html[data-theme="light"] .btn--ghost {
+  background: color-mix(in srgb, var(--accent) 4%, #ffffff);
+  border-color: color-mix(in srgb, var(--accent) 30%, #e5e7eb);
+  color: var(--accent-600);
+}
+
+html[data-theme="light"] .btn--ghost:hover {
+  background: color-mix(in srgb, var(--accent) 10%, #ffffff);
+}
+
 /* ===========================
    Controles visuais “cara de botão”
 =========================== */
