@@ -1727,6 +1727,28 @@ html[data-theme="dark"] #seldisciplina {
   background-size: 20px 20px;
 }
 
+/* =========================================
+ * HOTFIX – campo "Componente Curricular"
+ * deixa igual aos outros filtros
+ * ========================================= */
+
+/* Tema claro */
+html[data-theme="light"] #seldisciplina {
+  background: color-mix(in srgb, var(--accent) 12%, #f0fdf4) !important;
+  color: var(--accent-600) !important;
+  border-color: color-mix(in srgb, var(--accent) 42%, #bbf7d0) !important;
+  border-radius: var(--control-radius) !important;
+}
+
+/* Tema escuro */
+html[data-theme="dark"] #seldisciplina {
+  background: #020617 !important;
+  color: #e5e7eb !important;
+  border-color: #1f2937 !important;
+  border-radius: var(--control-radius) !important;
+}
+
+
 
 
 
