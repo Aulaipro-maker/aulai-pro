@@ -1304,15 +1304,15 @@ body > main {
    PATCH — Aplique o tema corretamente na página inteira
    ====================================================== */
 
-/* Aplica fundo suave conforme tema */
+/* Aplica fundo base conforme tema */
 body {
   background: var(--bg) !important;
   color: var(--text) !important;
 }
 
-/* Light → fundo mais claro */
+/* Light → fundo claro com um toque da cor de acento */
 html[data-theme="light"] body {
-  background: color-mix(in srgb, var(--bg) 85%, white) !important;
+  background: color-mix(in srgb, var(--accent) 6%, #f7f9fc) !important;
 }
 
 /* Dark → fundo escuro suave */
@@ -1330,6 +1330,7 @@ html[data-theme="dark"] body {
   color: var(--text) !important;
   border-color: var(--border) !important;
 }
+
 /* Botões mais contrastantes no modo escuro */
 html[data-theme="dark"] .btn {
   background: color-mix(in srgb, var(--accent) 20%, #0f172a);
