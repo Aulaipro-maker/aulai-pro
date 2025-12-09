@@ -1183,36 +1183,24 @@ body > main {
   }
 }
 
-/* ===========================
-   Painel de blocos do plano
-   (Metodologia, Recursos, etc.)
-   =========================== */
-/*
-#painel-checklists{
+#painel-checklists {
+  margin-top: 24px;
+  padding: 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
   display: grid;
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px 24px;
 }
 
-/* Mobile / telas menores: tudo em 1 coluna */
-/*@media (max-width: 1600px){
-  #painel-checklists{
+@media (max-width: 900px) {
+  #painel-checklists {
     grid-template-columns: 1fr;
   }
 }
 
-/* Desktop: 3 colunas  →  6 blocos em 2 linhas */
-/*@media (min-width: 1600px){
-  #painel-checklists{
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
 
-/* Garante que cada bloco ocupe bem a célula do grid */
-#painel-checklists .painel-bloco{
- /* width: 100%;
-  margin: 0;
-}
-/*
 /* ================================
  * PATCH-PLANO – FOLHA ÚNICA (tipo Word)
  * Aplica APENAS no card "Plano de Aula"
