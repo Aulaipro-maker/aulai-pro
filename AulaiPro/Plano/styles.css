@@ -1313,3 +1313,45 @@ body > main {
   max-width: 100% !important;  /* não limita mais a 1180/1600, segue o container */
   margin-inline: 0;            /* tira qualquer estreitamento lateral */
 }
+
+/* ======================================================
+   PATCH — Aplique o tema corretamente na página inteira
+   ====================================================== */
+
+/* Aplica fundo suave conforme tema */
+body {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+/* Light → fundo mais claro */
+html[data-theme="light"] body {
+  background: color-mix(in srgb, var(--bg) 85%, white) !important;
+}
+
+/* Dark → fundo escuro suave */
+html[data-theme="dark"] body {
+  background: color-mix(in srgb, var(--bg) 92%, black) !important;
+}
+
+/* Cards respeitam o tema */
+.card,
+.app-header,
+.app-footer,
+#layout-main .card,
+.painel-bloco {
+  background: var(--card) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+/* Botões mais contrastantes no modo escuro */
+html[data-theme="dark"] .btn {
+  background: color-mix(in srgb, var(--accent) 20%, #0f172a);
+  color: #e5e7eb;
+  border-color: color-mix(in srgb, var(--accent) 40%, #000);
+}
+
+html[data-theme="dark"] .btn:hover {
+  background: color-mix(in srgb, var(--accent) 30%, #0f172a);
+}
+
