@@ -1183,23 +1183,6 @@ body > main {
   }
 }
 
-#painel-checklists {
-  margin-top: 24px;
-  padding: 20px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 18px 24px;
-}
-
-@media (max-width: 900px) {
-  #painel-checklists {
-    grid-template-columns: 1fr;
-  }
-}
-
 
 /* ================================
  * PATCH-PLANO – FOLHA ÚNICA (tipo Word)
