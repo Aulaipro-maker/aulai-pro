@@ -426,20 +426,6 @@ textarea.control{ min-height: calc(var(--control-h) * 1.4); padding-top:12px; pa
 }
 
 /* ===========================
-   Tema aplicado na página toda
-=========================== */
-html[data-theme]{ background:var(--bg) !important; color:var(--text) !important; }
-html[data-theme] body{ background:transparent !important; color:inherit !important; }
-html[data-theme] header.app-header,
-html[data-theme] footer.app-footer,
-html[data-theme] main.container,
-html[data-theme] #layout-main,
-html[data-theme] .container{ background:transparent !important; }
-html[data-theme] #layout-main .card,
-html[data-theme] .app-header,
-html[data-theme] .app-footer{ background:var(--card) !important; color:var(--text) !important; border-color:var(--border) !important; }
-
-/* ===========================
    Layout principal
    → uma coluna centralizada, plano mais largo
 =========================== */
