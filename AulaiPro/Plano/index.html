@@ -1346,8 +1346,97 @@ async function primeTemas(etapa, disciplina) {
 </script>
 
 </script>
+
+<script>
+/* =====================================
+ * Aparência – Plano de Aula (AulaiPro)
+ * Faz o modal salvar e aplicar o tema
+ * ===================================== */
+(function () {
+  const KEY = 'lessonai.appearance';
+
+  const dlg       = document.getElementById('dlg-aparencia');
+  const btnOpen   = document.getElementById('btn-aparencia');
+  const btnApply  = document.getElementById('aparencia-salvar');
+  const rdLight   = document.getElementById('theme-light');
+  const rdDark    = document.getElementById('theme-dark');
+  const inpAccent = document.getElementById('accent-color');
+  const rngFont   = document.getElementById('font-scale');
+
+  if (!dlg || !btnOpen) {
+    console.warn('[AparenciaPlano] Elementos de aparência não encontrados.');
+    return;
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return {};
+      return JSON.parse(raw) || {};
+    } catch (e) {
+      console.warn('[AparenciaPlano] Falha ao ler localStorage:', e);
+      return {};
+    }
+  }
+
+  function applyState(st, opts) {
+    const save = opts?.save ?? true;
+    const mode   = st.mode   || 'light';
+    const accent = st.accent || '#2563eb';
+    const fs     = Number(st.fs || 100);
+
+    const root = document.documentElement;
+    root.setAttribute('data-theme', mode);
+    root.style.setProperty('--accent', accent);
+    root.style.fontSize = (fs / 100) + 'em';
+
+    if (save) {
+      localStorage.setItem(KEY, JSON.stringify({ mode, accent, fs }));
+    }
+  }
+
+  function syncFormFromState() {
+    const st = loadState();
+    const mode     = st.mode || 'light';
+    const accent   = st.accent || '#2563eb';
+    const fsScale  = (st.fs || 100) / 100;
+
+    if (rdLight) rdLight.checked = (mode === 'light');
+    if (rdDark)  rdDark.checked  = (mode === 'dark');
+    if (inpAccent) inpAccent.value = accent;
+    if (rngFont)   rngFont.value   = fsScale;
+  }
+
+  btnOpen.addEventListener('click', () => {
+    syncFormFromState();
+    dlg.showModal();
+  });
+
+  btnApply?.addEventListener('click', (ev) => {
+    ev.preventDefault();
+
+    const mode   = rdDark?.checked ? 'dark' : 'light';
+    const accent = inpAccent?.value || '#2563eb';
+    const fsScale = parseFloat(rngFont?.value || '1') || 1;
+
+    const st = {
+      mode,
+      accent,
+      fs: Math.round(fsScale * 100)
+    };
+
+    applyState(st, { save: true });
+    dlg.close();
+  });
+
+  // aplica imediatamente ao carregar a página
+  applyState(loadState(), { save: false });
+})();
+</script>
+    
 </body>
 </html>
+
 
 
 
