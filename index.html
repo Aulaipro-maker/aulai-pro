@@ -8,7 +8,7 @@
       verde:'#22c55e', azul:'#3b82f6', roxo:'#a855f7',
       laranja:'#f59e0b', rosa:'#ec4899', cinza:'#6b7280'
     };
-    const st   = JSON.parse(localStorage.getItem('lessonai.appearance') || '{}');
+    const st   = JSON.parse(localStorage.getItem('AulaiPro.appearance') || '{}');
     const mode = st.mode || 'light';
     const pal  = st.palette || 'azul';
     const fs   = st.fs || 100;
@@ -21,7 +21,7 @@
   <!-- 2) META + TÍTULO + CSS EXTERNO -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LessonAI — Página Inicial</title>
+  <title>AulaiPro — Página Inicial</title>
   <link rel="stylesheet" href="../assets/css/styles.css" />
 
   <!-- 3) CSS EMBUTIDO (dentro de <style> e FECHANDO com </style>) -->
@@ -238,7 +238,7 @@
 
   <footer>
     <div class="wrap">
-      <div>© <span id="year"></span> LessonAI — uso educativo.</div>
+      <div>© <span id="year"></span> AulaiPro — uso educativo.</div>
     </div>
   </footer>
 
@@ -283,7 +283,7 @@
     <div class="modal-card">
       <h2 style="margin-top:0">Cadastro</h2>
       <p class="muted" style="margin-bottom:8px">
-        Preencha alguns dados para que o LessonAI personalize sua experiência.
+        Preencha alguns dados para que o AulaiPro personalize sua experiência.
         Se preferir, você pode informar apenas o e-mail.
       </p>
 
@@ -377,7 +377,7 @@
 
         // ===== cadastro (modal acionado pelo botão do cabeçalho) =====
     (function(){
-      const STORAGE_KEY = 'lessonai.user';
+      const STORAGE_KEY = 'AulaiPro.user';
 
       const dlg       = document.getElementById('dlg-cadastro');
       const backdrop  = document.getElementById('backdrop');
@@ -496,7 +496,7 @@
 
       on('btn-basico', () => {
         try {
-          localStorage.setItem('lessonai.tipo', 'basico');
+          localStorage.setItem('AulaiPro.tipo', 'basico');
         } catch {}
         location.href = APP_BASICO;
       });
@@ -535,7 +535,7 @@
         cinza:   { accent: '#6b7280' }
       };
       function applyAppearance(opts){
-        const st = opts || JSON.parse(localStorage.getItem('lessonai.appearance')||'{}');
+        const st = opts || JSON.parse(localStorage.getItem('AulaiPro.appearance')||'{}');
         const mode = st.mode || 'light';
         const pal  = st.palette || 'azul';
         const fs   = st.fs || 100;
@@ -548,7 +548,7 @@
       }
             function syncForm(){
         if (!dlg) return;
-        const st = JSON.parse(localStorage.getItem('lessonai.appearance')||'{}');
+        const st = JSON.parse(localStorage.getItem('AulaiPro.appearance')||'{}');
         const mode = st.mode || 'light';
         const pal  = st.palette || 'azul';
         const fs   = st.fs || 100;
@@ -578,7 +578,7 @@
         const sel  = dlg.querySelector('.swatch[aria-checked="true"]');
         const palette = sel?.dataset.palette || 'azul';
         const st = { mode, fs, palette };
-        localStorage.setItem('lessonai.appearance', JSON.stringify(st));
+        localStorage.setItem('AulaiPro.appearance', JSON.stringify(st));
         applyAppearance(st);
         closeDlg();
       });
@@ -588,7 +588,7 @@
 
       // Topo: placeholders
       on('top-config', ()=> alert('Configurações: preferências do sistema (em breve).'));
-      on('top-help',   ()=> alert('Ajuda: guia rápido do LessonAI (em breve).'));
+      on('top-help',   ()=> alert('Ajuda: guia rápido do AulaiPro (em breve).'));
       // o botão "Cadastro" (top-cadastro) é tratado no bloco de cadastro
     })();
 
@@ -596,6 +596,7 @@
   </script>
 </body>
 </html>
+
 
 
 
