@@ -1,68 +1,68 @@
 // js/env.js
 (function () {
-  // PATCH 1: detectar se estamos rodando localmente
+  // ==============================
+  // 1) Detecta ambiente
+  // ==============================
   const host = window.location.hostname;
   const isLocalHost = /^(localhost|127\.0\.0\.1)$/.test(host);
 
-  // regex para URLs do tipo localhost/127.0.0.1
-  const LOCAL_RE = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i;
-
-  // 1) Base URL: honra <body data-api-base="...">, depois window.API_BASE
-  const fromBodyRaw = document.body?.dataset?.apiBase?.trim();
-  const currentRaw =
+  // 2) Lê, SE EXISTIR:
+  //    - <body data-api-base="...">
+  //    - window.API_BASE (se algum script antigo setar)
+  const fromBody = document.body?.dataset?.apiBase?.trim();
+  const current =
     typeof window.API_BASE === "string" && window.API_BASE.trim()
       ? window.API_BASE.trim()
       : null;
 
-  // ⚠️ Em produção, ignorar valores que apontem para localhost/127.0.0.1
-  const fromBody =
-    !isLocalHost && fromBodyRaw && LOCAL_RE.test(fromBodyRaw)
-      ? null
-      : fromBodyRaw;
+  // 3) Fallback:
+  //    - LOCAL: usa 127.0.0.1:8000 (seu backend rodando no PC)
+  //    - PRODUÇÃO: usa seu backend público (ex.: Vercel)
+  //
+  //    >>> TROQUE AQUI para a URL real do backend quando publicar <<<
+  const PROD_BACKEND = "https://aulai-pro-backend.vercel.app"; // ajuste se for outro host
 
-  const current =
-    !isLocalHost && currentRaw && LOCAL_RE.test(currentRaw)
-      ? null
-      : currentRaw;
+  const fallback = isLocalHost ? "http://127.0.0.1:8000" : PROD_BACKEND;
 
-  // PATCH 2: Fallback só em ambiente local
-  // → Em produção (Vercel) o fallback é null (sem tentar 127.0.0.1)
-  const fallback = isLocalHost ? "http://127.0.0.1:8000" : null;
-
+  // 4) Decide a BASE:
+  //    prioridade: data-api-base > window.API_BASE > fallback
   const baseRaw = fromBody || current || fallback;
 
-  // normaliza para não duplicar barras e nem perder protocolo
+  // normaliza para não duplicar barras
   function normalizeBase(url) {
-    // remove trailing slash somente do base
     return (url || "").replace(/\/+$/, "");
   }
 
   const BASE = baseRaw ? normalizeBase(baseRaw) : null;
 
-  // Mantém compatibilidade com o restante do app
+  // 5) Expõe no escopo global
   window.API_BASE = BASE;
 
-  // PATCH 3: expõe info de ambiente para outros scripts (api.js, health.js, etc.)
   window.ENV = {
     API_BASE: BASE,
     isLocal: isLocalHost,
     hasBackend: !!BASE,
   };
 
-  // ======================================================
-  // 2) Utilitário seguro para juntar base + path
-  // ======================================================
+  console.log(
+    "[AulaiPro][ENV] host =", host,
+    "| isLocal =", isLocalHost,
+    "| API_BASE =", BASE
+  );
+
+  // ==============================
+  // 6) Helper para montar URLs
+  // ==============================
   function joinURL(base, path) {
     if (!path) return base;
     const p = String(path);
-    if (/^https?:\/\//i.test(p)) return p; // se já é absoluto, retorna como está
+    if (/^https?:\/\//i.test(p)) return p; // já é absoluta
     return `${base}/${p.replace(/^\/+/, "")}`;
   }
 
-  // ======================================================
-  // 3) fetch com timeout, tratamento 204/205, corpo de erro
-  //    legível e opção de retries leves
-  // ======================================================
+  // ==============================
+  // 7) HTTP com timeout + retries
+  // ==============================
   async function http(
     method,
     path,
@@ -70,19 +70,13 @@
     timeoutMs = 20000,
     { retries = 0, credentials = "same-origin", headers = {} } = {}
   ) {
-    if (!API_BASE) {
-      // Sem backend configurado → falha imediata e mais clara
-      const e = new Error(
-        `Nenhum API_BASE definido para chamar "${path}". Verifique env.js / data-api-base.`
-      );
-      e.status = 0;
-      e.url = path;
-      throw e;
+    if (!window.API_BASE) {
+      throw new Error("API_BASE não definida (nenhum backend configurado)");
     }
 
-    const url = joinURL(API_BASE, path);
+    const url = joinURL(window.API_BASE, path);
 
-    const attempt = async () => {
+    const attemptOnce = async () => {
       const ctrl = new AbortController();
       const t = setTimeout(() => ctrl.abort(), timeoutMs);
 
@@ -96,7 +90,7 @@
       const opt = {
         method,
         signal: ctrl.signal,
-        credentials, // “same-origin” por padrão; mude para “include” se precisar de cookies cross-site
+        credentials,
         headers: {
           ...(isJsonBody ? { "Content-Type": "application/json" } : {}),
           ...headers,
@@ -107,7 +101,7 @@
       try {
         const res = await fetch(url, opt);
 
-        // Trata 204/205 sem corpo
+        // 204/205 → sem corpo
         if (res.status === 204 || res.status === 205) {
           return null;
         }
@@ -116,7 +110,6 @@
         const isJson = ct.includes("application/json");
 
         if (!res.ok) {
-          // tenta extrair uma mensagem curta do corpo do erro, sem explodir
           let snippet = "";
           try {
             const errBody = isJson ? await res.json() : await res.text();
@@ -125,6 +118,7 @@
                 ? errBody.slice(0, 300)
                 : JSON.stringify(errBody).slice(0, 300);
           } catch (_) {}
+
           const e = new Error(
             `HTTP ${res.status} em ${url}${snippet ? ` — ${snippet}` : ""}`
           );
@@ -136,7 +130,6 @@
 
         return isJson ? res.json() : res.text();
       } finally {
-        // garante que o timeout seja limpo mesmo com throw
         clearTimeout(t);
       }
     };
@@ -144,23 +137,21 @@
     let lastErr;
     for (let i = 0; i <= retries; i++) {
       try {
-        return await attempt();
+        return await attemptOnce();
       } catch (e) {
         lastErr = e;
-        // Retry somente em abort/timeout ou 502/503/504
         const transient =
           e?.name === "AbortError" || [502, 503, 504].includes(e?.status);
         if (!transient || i === retries) break;
-        // pequeno backoff linear
         await new Promise((r) => setTimeout(r, 400 * (i + 1)));
       }
     }
     throw lastErr;
   }
 
-  // ======================================================
-  // 4) wrappers convenientes (retrocompatíveis)
-  // ======================================================
+  // ==============================
+  // 8) Aliases convenientes
+  // ==============================
   const GET = (path, opt) => http("GET", path, null, 20000, opt);
   const POST = (path, body, opt) => http("POST", path, body, 20000, opt);
   const PUT = (path, body, opt) => http("PUT", path, body, 20000, opt);
@@ -168,9 +159,6 @@
   const DELETE = (path, body = null, opt) =>
     http("DELETE", path, body, 20000, opt);
 
-  // ======================================================
-  // 5) helpers “seguros” para padrões comuns do app
-  // ======================================================
   async function safeGETArr(path, def = []) {
     try {
       const r = await GET(path, { retries: 1 });
@@ -179,7 +167,6 @@
       return def;
     }
   }
-
   async function safeGETObj(path, def = {}) {
     try {
       const r = await GET(path, { retries: 1 });
@@ -189,9 +176,7 @@
     }
   }
 
-  // ======================================================
-  // 6) exporta no namespace global
-  // ======================================================
+  // 9) Exporta no window
   window.http = http;
   window.GET = GET;
   window.POST = POST;
