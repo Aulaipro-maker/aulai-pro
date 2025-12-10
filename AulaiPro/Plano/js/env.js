@@ -1,12 +1,20 @@
 // js/env.js
-// 1) Base URL: honra <body data-api-base="...">, depois window.API_BASE, depois localhost
 (function () {
+  // PATCH 1: detectar se estamos rodando localmente
+  const host = window.location.hostname;
+  const isLocalHost = /^(localhost|127\.0\.0\.1)$/.test(host);
+
+  // 1) Base URL: honra <body data-api-base="...">, depois window.API_BASE
   const fromBody = document.body?.dataset?.apiBase?.trim();
-  const fallback = "http://127.0.0.1:8000";
   const current =
     typeof window.API_BASE === "string" && window.API_BASE.trim()
       ? window.API_BASE.trim()
       : null;
+
+  // PATCH 2: Fallback só em ambiente local
+  // → Em produção (Vercel) o fallback é null (sem tentar 127.0.0.1)
+  const fallback = isLocalHost ? "http://127.0.0.1:8000" : null;
+
   const baseRaw = fromBody || current || fallback;
 
   // normaliza para não duplicar barras e nem perder protocolo
@@ -14,8 +22,22 @@
     // remove trailing slash somente do base
     return (url || "").replace(/\/+$/, "");
   }
-  const BASE = normalizeBase(baseRaw);
-  window.API_BASE = BASE; // mantém compatibilidade com o restante do app
+
+  const BASE = baseRaw ? normalizeBase(baseRaw) : null;
+
+  // Mantém compatibilidade com o restante do app
+  window.API_BASE = BASE;
+
+  // PATCH 3: expõe info de ambiente para outros scripts (api.js)
+  window.ENV = {
+    API_BASE: BASE,
+    isLocal: isLocalHost,
+    hasBackend: !!BASE,
+  };
+
+
+  // joinURL, http, GET, POST, safeGETArr, safeGETObj, etc.
+
 
   // 2) Utilitário seguro para juntar base + path, aceitando path com/sem "/"
   function joinURL(base, path) {
@@ -144,3 +166,4 @@
   window.safeGETArr = safeGETArr;
   window.safeGETObj = safeGETObj;
 })();
+
