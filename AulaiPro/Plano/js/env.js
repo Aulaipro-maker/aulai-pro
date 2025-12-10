@@ -4,12 +4,26 @@
   const host = window.location.hostname;
   const isLocalHost = /^(localhost|127\.0\.0\.1)$/.test(host);
 
+  // regex para URLs do tipo localhost/127.0.0.1
+  const LOCAL_RE = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i;
+
   // 1) Base URL: honra <body data-api-base="...">, depois window.API_BASE
-  const fromBody = document.body?.dataset?.apiBase?.trim();
-  const current =
+  const fromBodyRaw = document.body?.dataset?.apiBase?.trim();
+  const currentRaw =
     typeof window.API_BASE === "string" && window.API_BASE.trim()
       ? window.API_BASE.trim()
       : null;
+
+  // ⚠️ Em produção, ignorar valores que apontem para localhost/127.0.0.1
+  const fromBody =
+    !isLocalHost && fromBodyRaw && LOCAL_RE.test(fromBodyRaw)
+      ? null
+      : fromBodyRaw;
+
+  const current =
+    !isLocalHost && currentRaw && LOCAL_RE.test(currentRaw)
+      ? null
+      : currentRaw;
 
   // PATCH 2: Fallback só em ambiente local
   // → Em produção (Vercel) o fallback é null (sem tentar 127.0.0.1)
@@ -28,18 +42,16 @@
   // Mantém compatibilidade com o restante do app
   window.API_BASE = BASE;
 
-  // PATCH 3: expõe info de ambiente para outros scripts (api.js)
+  // PATCH 3: expõe info de ambiente para outros scripts (api.js, health.js, etc.)
   window.ENV = {
     API_BASE: BASE,
     isLocal: isLocalHost,
     hasBackend: !!BASE,
   };
 
-
-  // joinURL, http, GET, POST, safeGETArr, safeGETObj, etc.
-
-
-  // 2) Utilitário seguro para juntar base + path, aceitando path com/sem "/"
+  // ======================================================
+  // 2) Utilitário seguro para juntar base + path
+  // ======================================================
   function joinURL(base, path) {
     if (!path) return base;
     const p = String(path);
@@ -47,7 +59,10 @@
     return `${base}/${p.replace(/^\/+/, "")}`;
   }
 
-  // 3) fetch com timeout, tratamento 204/205, corpo de erro legível e opção de retries leves
+  // ======================================================
+  // 3) fetch com timeout, tratamento 204/205, corpo de erro
+  //    legível e opção de retries leves
+  // ======================================================
   async function http(
     method,
     path,
@@ -55,6 +70,16 @@
     timeoutMs = 20000,
     { retries = 0, credentials = "same-origin", headers = {} } = {}
   ) {
+    if (!API_BASE) {
+      // Sem backend configurado → falha imediata e mais clara
+      const e = new Error(
+        `Nenhum API_BASE definido para chamar "${path}". Verifique env.js / data-api-base.`
+      );
+      e.status = 0;
+      e.url = path;
+      throw e;
+    }
+
     const url = joinURL(API_BASE, path);
 
     const attempt = async () => {
@@ -72,8 +97,11 @@
         method,
         signal: ctrl.signal,
         credentials, // “same-origin” por padrão; mude para “include” se precisar de cookies cross-site
-        headers: { ...(isJsonBody ? { "Content-Type": "application/json" } : {}), ...headers },
-        body: isJsonBody ? JSON.stringify(body) : body || undefined
+        headers: {
+          ...(isJsonBody ? { "Content-Type": "application/json" } : {}),
+          ...headers,
+        },
+        body: isJsonBody ? JSON.stringify(body) : body || undefined,
       };
 
       try {
@@ -130,7 +158,9 @@
     throw lastErr;
   }
 
-  // 4) wrappers convenientes (retrocompatíveis com seu código)
+  // ======================================================
+  // 4) wrappers convenientes (retrocompatíveis)
+  // ======================================================
   const GET = (path, opt) => http("GET", path, null, 20000, opt);
   const POST = (path, body, opt) => http("POST", path, body, 20000, opt);
   const PUT = (path, body, opt) => http("PUT", path, body, 20000, opt);
@@ -138,7 +168,9 @@
   const DELETE = (path, body = null, opt) =>
     http("DELETE", path, body, 20000, opt);
 
-  // 5) helpers “seguros” para padrões comuns do seu app
+  // ======================================================
+  // 5) helpers “seguros” para padrões comuns do app
+  // ======================================================
   async function safeGETArr(path, def = []) {
     try {
       const r = await GET(path, { retries: 1 });
@@ -147,6 +179,7 @@
       return def;
     }
   }
+
   async function safeGETObj(path, def = {}) {
     try {
       const r = await GET(path, { retries: 1 });
@@ -156,7 +189,9 @@
     }
   }
 
-  // 6) exporta no namespace global (mantém window.http que você já usa)
+  // ======================================================
+  // 6) exporta no namespace global
+  // ======================================================
   window.http = http;
   window.GET = GET;
   window.POST = POST;
@@ -166,4 +201,3 @@
   window.safeGETArr = safeGETArr;
   window.safeGETObj = safeGETObj;
 })();
-
