@@ -203,31 +203,34 @@ function buildObjetivosTextoFromRows(rows) {
   return p.toString();
 }
 
+
   const makeKey = (endpoint, ctx) => {
   const norm = {
-    endpoint,
-    etapa: ctx.etapa || '',
-    disciplina: ctx.disciplina || '',
-    tema: toArr(ctx.tema).slice().sort(),
+  endpoint,
+  etapa: ctx.etapa || '',
+  disciplina: ctx.disciplina || '',
+  tema: toArr(ctx.tema).slice().sort(),
+  habilidade: toArr(ctx.habilidade).slice().sort(), // <-- AQUI
+  objeto: toArr(ctx.objeto).slice().sort(),
+  titulo: toArr(ctx.titulo).slice().sort(),
+  conteudo: toArr(ctx.conteudo).slice().sort(),
+  aula: toArr(ctx.aula).slice().sort(),
+};
 
-    // ✅ INSIRA AQUI (logo após tema, antes de objeto)
-    habilidade: toArr(ctx.habilidade).slice().sort(),
-
-    objeto: toArr(ctx.objeto).slice().sort(),
-    titulo: toArr(ctx.titulo).slice().sort(),
-    conteudo: toArr(ctx.conteudo).slice().sort(),
-    aula: toArr(ctx.aula).slice().sort(),
-  };
   return JSON.stringify(norm);
 };
 
 
   // ================= API Fallback-Safe =================
   async function apiGETList(endpoint, paramsQS, mapKey) {
-    const BASE = (window.API_BASE || window.BASE_URL || '');
-    const url = `${BASE}${endpoint}?${paramsQS}`;
-    try {
-      let js;
+  const BASE = (window.API_BASE || window.BASE_URL || '');
+  const url = `${BASE}${endpoint}?${paramsQS}`;
+
+  // ✅ ADICIONE ESTA LINHA AQUI
+  console.debug('[apiGETList] url=', url);
+
+  try {
+    let js;
       try {
         if (window.http) {
           js = await window.http('GET', url);
@@ -552,8 +555,9 @@ async function onTemaChangeLoadAll({ etapa, disciplina }) {
 
   try {
     const ctxBase = hasAny(temasSel)
-      ? { etapa, disciplina, tema: temasSel }
-      : { etapa, disciplina };
+  ? { etapa, disciplina, tema: (temasSel.length === 1 ? temasSel[0] : temasSel) }
+  : { etapa, disciplina };
+
 
     console.debug('[Funnel.tema] ctxBase', ctxBase);
 
