@@ -515,74 +515,125 @@ function buildObjetivosTextoFromRows(rows) {
 
 
   // ============== NÚCLEO: ao escolher TEMA, carrega tudo ==============
-  let __temaInflight = false;
-  let __temaLastKey = '';
+let __temaInflight = false;
+let __temaLastKey = '';
+let __temaReqSeq = 0;
 
-  function temaKey({ etapa, disciplina }, temasSel) {
-    return JSON.stringify({
-      e: etapa,
-      d: disciplina,
-      t: toArr(temasSel).slice().sort()
-    });
+// normaliza valores para key e para query
+function normalizeSel(v) {
+  // aceita string, number, {value}, etc.
+  if (v && typeof v === 'object') {
+    if ('value' in v) return String(v.value).trim();
+    if ('id' in v) return String(v.id).trim();
+    return String(v).trim();
+  }
+  return String(v ?? '').trim();
+}
+
+function temaKey({ etapa, disciplina }, temasSel) {
+  const norm = toArr(temasSel)
+    .map(normalizeSel)
+    .filter(Boolean)
+    .sort();
+
+  return JSON.stringify({ e: String(etapa||''), d: String(disciplina||''), t: norm });
+}
+
+async function onTemaChangeLoadAll({ etapa, disciplina }) {
+  const $tema = document.querySelector(IDS.tema);
+  const temasSelRaw = getSelectValues($tema);
+
+  // normaliza também para ctxBase (evita mandar lixo/objetos)
+  const temasSel = toArr(temasSelRaw)
+    .map(normalizeSel)
+    .filter(Boolean);
+
+  const key = temaKey({ etapa, disciplina }, temasSel);
+
+  if (__temaInflight && __temaLastKey === key) {
+    console.debug('[Funnel.tema] chamada ignorada (inflight mesmo contexto)', key);
+    return;
   }
 
-  async function onTemaChangeLoadAll({ etapa, disciplina }) {
-    const $tema = document.querySelector(IDS.tema);
-    const temasSel = getSelectValues($tema);
+  __temaInflight = true;
+  __temaLastKey = key;
 
-    const key = temaKey({ etapa, disciplina }, temasSel);
-    if (__temaInflight && __temaLastKey === key) {
-      console.debug('[Funnel.tema] chamada ignorada (inflight mesmo contexto)', key);
+  // token anti-stale
+  const reqId = ++__temaReqSeq;
+
+  console.debug('[Funnel.tema] IN', { etapa, disciplina, temasSel, key, reqId });
+
+  try {
+    const ctxBase = hasAny(temasSel)
+      ? { etapa, disciplina, tema: temasSel }
+      : { etapa, disciplina };
+
+    console.debug('[Funnel.tema] ctxBase', ctxBase);
+
+    const results = await Promise.allSettled([
+      API_WRAP.objetos(ctxBase),
+      API_WRAP.titulos(ctxBase),
+      API_WRAP.conteudos(ctxBase),
+      API_WRAP.habilidades(ctxBase),
+      API_WRAP.aulas(ctxBase)
+    ]);
+
+    // se chegou depois de uma seleção mais nova, descarta
+    if (reqId !== __temaReqSeq) {
+      console.warn('[Funnel.tema] resposta descartada (stale)', { reqId, current: __temaReqSeq, key });
       return;
     }
 
-    __temaInflight = true;
-    __temaLastKey = key;
+    const [objP, titP, contP, habP, aulaP] = results;
 
-    console.debug('[Funnel.tema] IN', { etapa, disciplina, temasSel, key });
+    // loga rejeições para você enxergar 422/404/CORS
+    const logRejected = (label, p) => {
+      if (p.status === 'rejected') {
+        console.error(`[Funnel.tema] ${label} REJECTED`, p.reason);
+      }
+    };
+    logRejected('objetos', objP);
+    logRejected('titulos', titP);
+    logRejected('conteudos', contP);
+    logRejected('habilidades', habP);
+    logRejected('aulas', aulaP);
 
-    try {
-    
+    const objetos     = objP.status  === 'fulfilled' ? toArr(objP.value)   : [];
+    const titulos     = titP.status  === 'fulfilled' ? toArr(titP.value)   : [];
+    const conteudos   = contP.status === 'fulfilled' ? toArr(contP.value)  : [];
+    const habilidades = habP.status  === 'fulfilled' ? toArr(habP.value)   : [];
+    const aulas       = aulaP.status === 'fulfilled' ? toArr(aulaP.value)  : [];
 
-      const ctxBase = hasAny(temasSel)
-        ? { etapa, disciplina, tema: temasSel }
-        : { etapa, disciplina };
+    console.debug('[Funnel.tema] prefetch totals', {
+      objetos: objetos.length,
+      titulos: titulos.length,
+      conteudos: conteudos.length,
+      habilidades: habilidades.length,
+      aulas: aulas.length,
+      reqId
+    });
 
-      console.debug('[Funnel.tema] ctxBase', ctxBase);
+    // inclua aulas no infer (melhora diagnóstico de “só disciplina carrega”)
+    const fields = inferFieldsPresence({ objetos, titulos, conteudos, habilidades, aulas });
+    const pack = { objetos, titulos, conteudos, habilidades, aulas, fields };
 
-      const [objP, titP, contP, habP, aulaP] = await Promise.allSettled([
-        API_WRAP.objetos(ctxBase),
-        API_WRAP.titulos(ctxBase),
-        API_WRAP.conteudos(ctxBase),
-        API_WRAP.habilidades(ctxBase),
-        API_WRAP.aulas(ctxBase)
-      ]);
-
-      const objetos     = objP.status  === 'fulfilled' ? toArr(objP.value)   : [];
-      const titulos     = titP.status  === 'fulfilled' ? toArr(titP.value)   : [];
-      const conteudos   = contP.status === 'fulfilled' ? toArr(contP.value)  : [];
-      const habilidades = habP.status  === 'fulfilled' ? toArr(habP.value)   : [];
-      const aulas       = aulaP.status === 'fulfilled' ? toArr(aulaP.value)  : [];
-
-      console.debug('[Funnel.tema] prefetch totals', {
-        objetos: objetos.length,
-        titulos: titulos.length,
-        conteudos: conteudos.length,
-        habilidades: habilidades.length,
-        aulas: aulas.length
-      });
-
-      const fields = inferFieldsPresence({ objetos, titulos, conteudos, habilidades });
-      const pack = { objetos, titulos, conteudos, habilidades, aulas, fields };
-
-      FunnelStore.set(etapa, disciplina, temasSel, pack);
-      applyPrefetchToUI(pack);
-    } catch (e) {
-      console.error('[Funnel.tema] ERRO', e?.message || e, e);
-    } finally {
+    FunnelStore.set(etapa, disciplina, temasSel, pack);
+    applyPrefetchToUI(pack);
+  } catch (e) {
+    // se for erro velho, não polui
+    if (reqId !== __temaReqSeq) {
+      console.warn('[Funnel.tema] erro descartado (stale)', { reqId, current: __temaReqSeq }, e);
+      return;
+    }
+    console.error('[Funnel.tema] ERRO', e?.message || e, e);
+  } finally {
+    // só libera inflight se for a requisição mais recente
+    if (reqId === __temaReqSeq) {
       __temaInflight = false;
     }
   }
+}
+
 
     function applyPrefetchToUI({ objetos, titulos, conteudos, habilidades, aulas, fields }) {
     const $obj = document.querySelector(IDS.objeto);
