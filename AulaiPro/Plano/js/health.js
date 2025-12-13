@@ -1,10 +1,11 @@
 // js/health.js
 (function () {
-  if (window.__lessonai_health_loaded) {
-    console.warn("[LessonAI] health.js já carregado — ignorando duplicata");
-    return;
-  }
-  window.__lessonai_health_loaded = true;
+  if (window.__aulaiPro_health_loaded) {
+  console.warn("[AulaiPro] health.js já carregado — ignorando duplicata");
+  return;
+}
+window.__aulaiPro_health_loaded = true;
+
 
   const badge = document.getElementById("backend-status");
   const dot   = document.getElementById("health-dot");
@@ -136,3 +137,4 @@
   // inicia
   start();
 })();
+
