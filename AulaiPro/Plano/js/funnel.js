@@ -179,61 +179,48 @@ function buildObjetivosTextoFromRows(rows) {
 }
 
 
-  // Adiciona 'aula' e considera no contains
-  function qsParamsBase({ etapa, disciplina, tema, objeto, titulo, conteudo, aula }) {
-    const containsTema = hasAny(tema);
-    const containsObj  = hasAny(objeto);
-    const containsTit  = hasAny(titulo);
-    const containsCont = hasAny(conteudo);
-    const containsAula = hasAny(aula);
+  function qsParamsBase({ etapa, disciplina, tema, habilidade, objeto, titulo, conteudo, aula }) {
+  const containsTema = hasAny(tema);
+  const containsHab  = hasAny(habilidade);
+  const containsObj  = hasAny(objeto);
+  const containsTit  = hasAny(titulo);
+  const containsCont = hasAny(conteudo);
+  const containsAula = hasAny(aula);
 
-    const p = new URLSearchParams();
-    if (etapa)      p.set('etapa', etapa);
-    if (disciplina) p.set('disciplina', disciplina);
-    if (containsTema)  p.set('tema', joinQS(tema));
-    if (containsObj)   p.set('objeto', joinQS(objeto));
-    if (containsTit)   p.set('titulo', joinQS(titulo));
-    if (containsCont)  p.set('conteudo', joinQS(conteudo));
-    if (containsAula)  p.set('aula', joinQS(aula));
+  const p = new URLSearchParams();
+  if (etapa)      p.set('etapa', etapa);
+  if (disciplina) p.set('disciplina', disciplina);
 
-    const hasFilters = containsTema || containsObj || containsTit || containsCont || containsAula;
-    if (hasFilters) p.set('contains', '1');
-    return p.toString();
-  }
+  if (containsTema) p.set('tema', joinQS(tema));
+  if (containsHab)  p.set('habilidade', joinQS(habilidade));
+  if (containsObj)  p.set('objeto', joinQS(objeto));
+  if (containsTit)  p.set('titulo', joinQS(titulo));
+  if (containsCont) p.set('conteudo', joinQS(conteudo));
+  if (containsAula) p.set('aula', joinQS(aula));
 
-  // ============== CACHE DE CONSULTAS REFINADAS (TTL) ==============
-  function createQueryCache(ttlMs = 5 * 60 * 1000) {
-    const mem = new Map(); // key -> { t: expiresAt, v: value }
-    const now = () => Date.now();
-    const makeKey = (endpoint, ctx) => {
-      const norm = {
-        endpoint,
-        etapa: ctx.etapa || '',
-        disciplina: ctx.disciplina || '',
-        tema: toArr(ctx.tema).slice().sort(),
-        objeto: toArr(ctx.objeto).slice().sort(),
-        titulo: toArr(ctx.titulo).slice().sort(),
-        conteudo: toArr(ctx.conteudo).slice().sort(),
-        aula: toArr(ctx.aula).slice().sort(),
-      };
-      return JSON.stringify(norm);
-    };
-    return {
-      get(endpoint, ctx) {
-        const k = makeKey(endpoint, ctx);
-        const hit = mem.get(k);
-        if (!hit) return undefined;
-        if (hit.t < now()) { mem.delete(k); return undefined; }
-        return hit.v;
-      },
-      set(endpoint, ctx, value) {
-        const k = makeKey(endpoint, ctx);
-        mem.set(k, { t: now() + ttlMs, v: value });
-      },
-      clear() { mem.clear(); }
-    };
-  }
-  const QueryCache = createQueryCache();
+  const hasFilters = containsTema || containsHab || containsObj || containsTit || containsCont || containsAula;
+  if (hasFilters) p.set('contains', '1');
+  return p.toString();
+}
+
+  const makeKey = (endpoint, ctx) => {
+  const norm = {
+    endpoint,
+    etapa: ctx.etapa || '',
+    disciplina: ctx.disciplina || '',
+    tema: toArr(ctx.tema).slice().sort(),
+
+    // ✅ INSIRA AQUI (logo após tema, antes de objeto)
+    habilidade: toArr(ctx.habilidade).slice().sort(),
+
+    objeto: toArr(ctx.objeto).slice().sort(),
+    titulo: toArr(ctx.titulo).slice().sort(),
+    conteudo: toArr(ctx.conteudo).slice().sort(),
+    aula: toArr(ctx.aula).slice().sort(),
+  };
+  return JSON.stringify(norm);
+};
+
 
   // ================= API Fallback-Safe =================
   async function apiGETList(endpoint, paramsQS, mapKey) {
