@@ -363,7 +363,7 @@
         if (!statusEl) return;
         try {
           const url = API_BASE.startsWith('http') ? API_BASE : (location.origin + API_BASE);
-          const r = await fetch(url + '/api/status', { headers: { 'Accept':'application/json' } });
+          const r = await fetch(url + '/api/ping', { headers: { 'Accept':'application/json' } });
           const ok = r.ok;
           statusEl.textContent = ok ? 'conectado' : 'desconectado';
           statusEl.style.borderColor = ok ? 'oklch(60% 0.12 150)' : '';
@@ -596,5 +596,6 @@
   </script>
 </body>
 </html>
+
 
 
