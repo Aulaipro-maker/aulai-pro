@@ -20,7 +20,7 @@
   //    - PRODUÇÃO: usa seu backend público (ex.: Vercel)
   //
   //    >>> TROQUE AQUI para a URL real do backend quando publicar <<<
-  const PROD_BACKEND = "https://aulai-pro-backend.vercel.app"; // ajuste se for outro host
+  const PROD_BACKEND = "https://aulaipro-backend-production.up.railway.app";
 
   const fallback = isLocalHost ? "http://127.0.0.1:8000" : PROD_BACKEND;
 
@@ -186,3 +186,4 @@
   window.safeGETArr = safeGETArr;
   window.safeGETObj = safeGETObj;
 })();
+
