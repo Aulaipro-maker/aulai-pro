@@ -1178,6 +1178,22 @@ if ($disc)  $disc.addEventListener('change', onScopeChange);
     };
   }
 
+  // garante que QueryCache exista
+const QueryCache = (typeof window !== 'undefined' && window.QueryCache)
+  ? window.QueryCache
+  : {
+      _m: new Map(),
+      get(k) { return this._m.get(k); },
+      set(k, v) { this._m.set(k, v); return v; },
+      has(k) { return this._m.has(k); },
+      clear() { this._m.clear(); }
+    };
+
+if (typeof window !== 'undefined') {
+  window.QueryCache = QueryCache;
+}
+
+
 
   // ============== EXPORTS (browser + módulos) ==============
   const Funnel = {
