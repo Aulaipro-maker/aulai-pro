@@ -1174,15 +1174,16 @@ function getCurrentSelectionSnapshot() {
   const $aul  = document.querySelector(IDS.aula);
 
   return {
-    etapa: ctx.etapa || '',
-    disciplina: ctx.disciplina || '',
-    tema: getSelectValues($tema),
-    objeto: getSelectValues($obj),
-    titulo: getSelectValues($tit),
-    conteudo: getSelectValues($con),
-    habilidade: getSelectValues($hab),
-    aula: getSelectValues($aul),
-  };
+  etapa: ctx.etapa || '',
+  disciplina: ctx.disciplina || '',
+  tema: $tema ? getSelectValues($tema) : [],  // Verifique se o valor não é undefined
+  objeto: $obj ? getSelectValues($obj) : [],
+  titulo: $tit ? getSelectValues($tit) : [],
+  conteudo: $con ? getSelectValues($con) : [],
+  habilidade: $hab ? getSelectValues($hab) : [],
+  aula: $aul ? getSelectValues($aul) : [],
+};
+
 }
 
 
@@ -1190,6 +1191,7 @@ function getCurrentSelectionSnapshot() {
 // ⚠️ QueryCache NÃO deve ser exportado (é detalhe interno do funil)
 const Funnel = {
   // utilitários
+  QueryCache: {},
   toArr,
   getSelectValues,
   joinQS,
