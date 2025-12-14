@@ -1161,63 +1161,89 @@ if ($disc)  $disc.addEventListener('change', onScopeChange);
   }
 
   // =====================================================
-  // SNAPSHOT ATUAL DO FUNIL (para TextareaUI / Plano)
-  // =====================================================
-  function getCurrentSelectionSnapshot() {
-    const ctx = getLiveCtx();
+// SNAPSHOT ATUAL DO FUNIL (para TextareaUI / Plano)
+// =====================================================
+function getCurrentSelectionSnapshot() {
+  const ctx = getLiveCtx();
 
-    const $tema = document.querySelector(IDS.tema);
-    const $obj  = document.querySelector(IDS.objeto);
-    const $tit  = document.querySelector(IDS.titulo);
-    const $con  = document.querySelector(IDS.conteudo);
-    const $hab  = document.querySelector(IDS.habilidade);
-    const $aul  = document.querySelector(IDS.aula);
+  const $tema = document.querySelector(IDS.tema);
+  const $obj  = document.querySelector(IDS.objeto);
+  const $tit  = document.querySelector(IDS.titulo);
+  const $con  = document.querySelector(IDS.conteudo);
+  const $hab  = document.querySelector(IDS.habilidade);
+  const $aul  = document.querySelector(IDS.aula);
 
-    return {
-      etapa: ctx.etapa || '',
-      disciplina: ctx.disciplina || '',
-      tema: getSelectValues($tema),
-      objeto: getSelectValues($obj),
-      titulo: getSelectValues($tit),
-      conteudo: getSelectValues($con),
-      habilidade: getSelectValues($hab),
-      aula: getSelectValues($aul),
-    };
-  }
-
-
-
-  // ============== EXPORTS (browser + módulos) ==============
-  const Funnel = {
-    // utilitários
-    toArr, getSelectValues, joinQS, sanitizeLabel, setOptions, hideField, hasAny, qsParamsBase,
-    // api/fallback + cache
-    apiGETList, API_WRAP, QueryCache,
-    // cache por tema
-    FunnelStore,
-    // ids/wraps
-    IDS, WRAPS,
-    // contexto vivo
-    getLiveCtx,
-    getCurrentSelectionSnapshot,
-    // handlers principais
-    wireFunnelHandlers,
-    onTemaChangeLoadAll, onObjetoChange, onTituloChange, onConteudoChange, onAulaChange,
-    // helpers de UI
-    applyPrefetchToUI, clearDownstream, inferFieldsPresence,
-    // util aulas
-    fetchAulasSafe,
+  return {
+    etapa: ctx.etapa || '',
+    disciplina: ctx.disciplina || '',
+    tema: getSelectValues($tema),
+    objeto: getSelectValues($obj),
+    titulo: getSelectValues($tit),
+    conteudo: getSelectValues($con),
+    habilidade: getSelectValues($hab),
+    aula: getSelectValues($aul),
   };
+}
 
-  if (typeof window !== 'undefined') {
-    window.Funnel = Funnel;
-  }
-  if (typeof module !== 'undefined' && module.exports) {
-    module.exports = Funnel;
-  } else if (typeof define === 'function' && define.amd) {
-    define(function () { return Funnel; });
-  }
+
+// ============== EXPORTS (browser + módulos) ==============
+// ⚠️ QueryCache NÃO deve ser exportado (é detalhe interno do funil)
+const Funnel = {
+  // utilitários
+  toArr,
+  getSelectValues,
+  joinQS,
+  sanitizeLabel,
+  setOptions,
+  hideField,
+  hasAny,
+  qsParamsBase,
+
+  // api
+  apiGETList,
+  API_WRAP,
+
+  // cache por tema (estado público do funil)
+  FunnelStore,
+
+  // ids/wraps
+  IDS,
+  WRAPS,
+
+  // contexto vivo
+  getLiveCtx,
+  getCurrentSelectionSnapshot,
+
+  // handlers principais
+  wireFunnelHandlers,
+  onTemaChangeLoadAll,
+  onObjetoChange,
+  onTituloChange,
+  onConteudoChange,
+  onAulaChange,
+
+  // helpers de UI
+  applyPrefetchToUI,
+  clearDownstream,
+  inferFieldsPresence,
+
+  // util aulas
+  fetchAulasSafe,
+};
+
+if (typeof window !== 'undefined') {
+  window.Funnel = Funnel;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = Funnel;
+} else if (typeof define === 'function' && define.amd) {
+  define(function () {
+    return Funnel;
+  });
+}
 })();
+
 
 // ===== BOOT DO FUNNEL (auto-wire com diagnóstico) =====
 (function bootFunnel(){
@@ -1254,13 +1280,7 @@ if ($disc)  $disc.addEventListener('change', onScopeChange);
     }
   }
 
-  // =========================
-
-// =========================
-// ======================================================
-// BOOT DO FUNIL (IIFE) – roda 1x ao carregar o script
-// ======================================================
-
+ 
 
   // =========================
   // FUNÇÃO DE INICIALIZAÇÃO
