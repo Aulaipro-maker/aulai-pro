@@ -256,6 +256,41 @@ function qsParamsBase({ etapa, disciplina, tema, objeto, titulo, conteudo, habil
     }
   }
 
+  // ============== CACHE DE CONSULTAS REFINADAS ==============
+const QueryCache = (() => {
+  const cache = new Map();
+  // TTL = Time to Live, para expiração de cache refinado (ex: 5 minutos)
+  const TTL_MS = 5 * 60 * 1000;
+
+  const makeRefinedKey = (endpoint, ctx) => makeKey(endpoint, ctx);
+
+  return {
+    get(endpoint, ctx) {
+      const key = makeRefinedKey(endpoint, ctx);
+      const entry = cache.get(key);
+      if (!entry) return undefined;
+
+      // Verifica expiração
+      if (Date.now() > entry.expires) {
+        cache.delete(key);
+        return undefined; // Cache expirado
+      }
+      return entry.data;
+    },
+    set(endpoint, ctx, data) {
+      const key = makeRefinedKey(endpoint, ctx);
+      cache.set(key, {
+        data: data,
+        expires: Date.now() + TTL_MS
+      });
+    },
+    clear() { cache.clear(); }
+  };
+})();
+
+// O restante do código (API_WRAP) segue abaixo
+// ...
+
   // Wrap de API com cache de consultas refinadas + DEBUG
   const API_WRAP = {
     // ---------------- OBJETOS ----------------
@@ -1115,9 +1150,7 @@ const onScopeChange = () => {
   console.debug('[Funnel] onScopeChange (etapa/disciplina mudou)');
 
   // 1) Limpa apenas os CACHES internos
-  Funnel.QueryCache.clear();
-  Funnel.FunnelStore.clear();
-
+ 
   // 2) Zera só a MEMÓRIA de seleção (para o selectionChanged funcionar certo)
   LAST_SELECTED.tema = [];
   LAST_SELECTED.objeto = [];
@@ -1160,90 +1193,85 @@ if ($disc)  $disc.addEventListener('change', onScopeChange);
     }
   }
 
+    // =====================================================
+  // SNAPSHOT ATUAL DO FUNIL (para TextareaUI / Plano)
   // =====================================================
-// SNAPSHOT ATUAL DO FUNIL (para TextareaUI / Plano)
-// =====================================================
-function getCurrentSelectionSnapshot() {
-  const ctx = getLiveCtx();
+  function getCurrentSelectionSnapshot() {
+    const ctx = getLiveCtx();
 
-  const $tema = document.querySelector(IDS.tema);
-  const $obj  = document.querySelector(IDS.objeto);
-  const $tit  = document.querySelector(IDS.titulo);
-  const $con  = document.querySelector(IDS.conteudo);
-  const $hab  = document.querySelector(IDS.habilidade);
-  const $aul  = document.querySelector(IDS.aula);
+    const $tema = document.querySelector(IDS.tema);
+    const $obj  = document.querySelector(IDS.objeto);
+    const $tit  = document.querySelector(IDS.titulo);
+    const $con  = document.querySelector(IDS.conteudo);
+    const $hab  = document.querySelector(IDS.habilidade);
+    const $aul  = document.querySelector(IDS.aula);
 
-  return {
-  etapa: ctx.etapa || '',
-  disciplina: ctx.disciplina || '',
-  tema: $tema ? getSelectValues($tema) : [],  // Verifique se o valor não é undefined
-  objeto: $obj ? getSelectValues($obj) : [],
-  titulo: $tit ? getSelectValues($tit) : [],
-  conteudo: $con ? getSelectValues($con) : [],
-  habilidade: $hab ? getSelectValues($hab) : [],
-  aula: $aul ? getSelectValues($aul) : [],
-};
+    return {
+      etapa: ctx.etapa || '',
+      disciplina: ctx.disciplina || '',
+      tema: $tema ? getSelectValues($tema) : [],
+      objeto: $obj ? getSelectValues($obj) : [],
+      titulo: $tit ? getSelectValues($tit) : [],
+      conteudo: $con ? getSelectValues($con) : [],
+      habilidade: $hab ? getSelectValues($hab) : [],
+      aula: $aul ? getSelectValues($aul) : [],
+    };
+  }
 
-}
+  // ============== EXPORTS (browser + módulos) ==============
+  // Regra: exportar APENAS API pública do funil.
+  // QueryCache é detalhe interno e NÃO deve ser exportado.
+  const Funnel = {
+    // utilitários
+    toArr,
+    getSelectValues,
+    joinQS,
+    sanitizeLabel,
+    setOptions,
+    hideField,
+    hasAny,
+    qsParamsBase,
 
+    // api/funil
+    apiGETList,
+    API_WRAP,
 
-// ============== EXPORTS (browser + módulos) ==============
-// ⚠️ QueryCache NÃO deve ser exportado (é detalhe interno do funil)
-const Funnel = {
-  // utilitários
-  QueryCache: {},
-  toArr,
-  getSelectValues,
-  joinQS,
-  sanitizeLabel,
-  setOptions,
-  hideField,
-  hasAny,
-  qsParamsBase,
+    // cache por tema (público do funil)
+    FunnelStore,
 
-  // api
-  apiGETList,
-  API_WRAP,
+    // ids/wraps
+    IDS,
+    WRAPS,
 
-  // cache por tema (estado público do funil)
-  FunnelStore,
+    // contexto vivo
+    getLiveCtx,
+    getCurrentSelectionSnapshot,
 
-  // ids/wraps
-  IDS,
-  WRAPS,
+    // handlers principais
+    wireFunnelHandlers,
+    onTemaChangeLoadAll,
+    onObjetoChange,
+    onTituloChange,
+    onConteudoChange,
+    onAulaChange,
 
-  // contexto vivo
-  getLiveCtx,
-  getCurrentSelectionSnapshot,
+    // helpers de UI
+    applyPrefetchToUI,
+    clearDownstream,
+    inferFieldsPresence,
 
-  // handlers principais
-  wireFunnelHandlers,
-  onTemaChangeLoadAll,
-  onObjetoChange,
-  onTituloChange,
-  onConteudoChange,
-  onAulaChange,
+    // util aulas
+    fetchAulasSafe,
+  };
 
-  // helpers de UI
-  applyPrefetchToUI,
-  clearDownstream,
-  inferFieldsPresence,
-
-  // util aulas
-  fetchAulasSafe,
-};
-
-if (typeof window !== 'undefined') {
-  window.Funnel = Funnel;
-}
-
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = Funnel;
-} else if (typeof define === 'function' && define.amd) {
-  define(function () {
-    return Funnel;
-  });
-}
+  if (typeof window !== 'undefined') {
+    window.Funnel = Funnel;
+  }
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = Funnel;
+  } else if (typeof define === 'function' && define.amd) {
+    define(function () { return Funnel; });
+  }
 })();
 
 
@@ -1282,7 +1310,13 @@ if (typeof module !== 'undefined' && module.exports) {
     }
   }
 
- 
+  // =========================
+
+// =========================
+// ======================================================
+// BOOT DO FUNIL (IIFE) – roda 1x ao carregar o script
+// ======================================================
+
 
   // =========================
   // FUNÇÃO DE INICIALIZAÇÃO
