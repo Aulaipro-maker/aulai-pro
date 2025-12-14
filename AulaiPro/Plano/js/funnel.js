@@ -179,46 +179,47 @@ function buildObjetivosTextoFromRows(rows) {
 }
 
 
-  function qsParamsBase({ etapa, disciplina, tema, habilidade, objeto, titulo, conteudo, aula }) {
+  // Adiciona 'habilidade' e considera no contains
+function qsParamsBase({ etapa, disciplina, tema, objeto, titulo, conteudo, habilidade, aula }) {
   const containsTema = hasAny(tema);
-  const containsHab  = hasAny(habilidade);
   const containsObj  = hasAny(objeto);
   const containsTit  = hasAny(titulo);
   const containsCont = hasAny(conteudo);
+  const containsHab  = hasAny(habilidade);
   const containsAula = hasAny(aula);
 
   const p = new URLSearchParams();
   if (etapa)      p.set('etapa', etapa);
   if (disciplina) p.set('disciplina', disciplina);
+  if (containsTema)  p.set('tema', joinQS(tema));
+  if (containsObj)   p.set('objeto', joinQS(objeto));
+  if (containsTit)   p.set('titulo', joinQS(titulo));
+  if (containsCont)  p.set('conteudo', joinQS(conteudo));
+  if (containsHab)   p.set('habilidade', joinQS(habilidade));
+  if (containsAula)  p.set('aula', joinQS(aula));
 
-  if (containsTema) p.set('tema', joinQS(tema));
-  if (containsHab)  p.set('habilidade', joinQS(habilidade));
-  if (containsObj)  p.set('objeto', joinQS(objeto));
-  if (containsTit)  p.set('titulo', joinQS(titulo));
-  if (containsCont) p.set('conteudo', joinQS(conteudo));
-  if (containsAula) p.set('aula', joinQS(aula));
-
-  const hasFilters = containsTema || containsHab || containsObj || containsTit || containsCont || containsAula;
+  const hasFilters = containsTema || containsObj || containsTit || containsCont || containsHab || containsAula;
   if (hasFilters) p.set('contains', '1');
   return p.toString();
 }
 
 
+
   const makeKey = (endpoint, ctx) => {
   const norm = {
-  endpoint,
-  etapa: ctx.etapa || '',
-  disciplina: ctx.disciplina || '',
-  tema: toArr(ctx.tema).slice().sort(),
-  habilidade: toArr(ctx.habilidade).slice().sort(), // <-- AQUI
-  objeto: toArr(ctx.objeto).slice().sort(),
-  titulo: toArr(ctx.titulo).slice().sort(),
-  conteudo: toArr(ctx.conteudo).slice().sort(),
-  aula: toArr(ctx.aula).slice().sort(),
-};
-
+    endpoint,
+    etapa: ctx.etapa || '',
+    disciplina: ctx.disciplina || '',
+    tema: toArr(ctx.tema).slice().sort(),
+    habilidade: toArr(ctx.habilidade).slice().sort(),
+    objeto: toArr(ctx.objeto).slice().sort(),
+    titulo: toArr(ctx.titulo).slice().sort(),
+    conteudo: toArr(ctx.conteudo).slice().sort(),
+    aula: toArr(ctx.aula).slice().sort(),
+  };
   return JSON.stringify(norm);
 };
+
 
 
   // ================= API Fallback-Safe =================
@@ -259,11 +260,16 @@ function buildObjetivosTextoFromRows(rows) {
   const API_WRAP = {
     // ---------------- OBJETOS ----------------
     async objetos(ctx) {
-      const cached = QueryCache.get('objetos', ctx);
-      if (cached) {
-        console.debug('[Funnel.API_WRAP.objetos] cache HIT', ctx, 'qtd=', cached.length);
+      const cached = QueryCache.get('habilidades', ctx);
+      if (Array.isArray(cached)) {
+        console.debug('[Funnel.API_WRAP.habilidades] cache HIT', ctx, 'qtd=', cached.length);
         return cached;
       }
+      if (cached !== undefined) {
+        console.warn('[Funnel.API_WRAP.habilidades] cache inválido (não-array). Ignorando.', { ctx, cached });
+      }
+
+
 
       console.debug('[Funnel.API_WRAP.objetos] IN', ctx);
 
