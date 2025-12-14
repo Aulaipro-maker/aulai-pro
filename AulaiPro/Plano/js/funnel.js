@@ -260,7 +260,8 @@ function qsParamsBase({ etapa, disciplina, tema, objeto, titulo, conteudo, habil
   const API_WRAP = {
     // ---------------- OBJETOS ----------------
     async objetos(ctx) {
-      const cached = QueryCache.get('habilidades', ctx);
+      const cached = QueryCache.get('objetos', ctx);
+
       if (Array.isArray(cached)) {
         console.debug('[Funnel.API_WRAP.habilidades] cache HIT', ctx, 'qtd=', cached.length);
         return cached;
@@ -1184,21 +1185,6 @@ if ($disc)  $disc.addEventListener('change', onScopeChange);
     };
   }
 
-  // garante que QueryCache exista
-const QueryCache = (typeof window !== 'undefined' && window.QueryCache)
-  ? window.QueryCache
-  : {
-      _m: new Map(),
-      get(k) { return this._m.get(k); },
-      set(k, v) { this._m.set(k, v); return v; },
-      has(k) { return this._m.has(k); },
-      clear() { this._m.clear(); }
-    };
-
-if (typeof window !== 'undefined') {
-  window.QueryCache = QueryCache;
-}
-
 
 
   // ============== EXPORTS (browser + módulos) ==============
@@ -1340,4 +1326,33 @@ if (typeof window !== 'undefined') {
     // DOM já está pronto
     start();
   }
+  // ===== FunnelDiag: tradutor de erros do funil =====
+  (function FunnelDiag(){
+    if (window.FunnelDiag) return;
+
+    function explain(err) {
+      const msg = String(err?.message || err || '');
+
+      if (msg.includes('Unexpected token') || msg.includes('Unexpected number')) {
+        console.error('[FunnelDiag] Provável SyntaxError no funnel.js. Verifique funções como "(.a)" e "(.args)" (deveria ser "...a" / "...args").');
+        return;
+      }
+      if (msg.includes('QueryCache is not defined')) {
+        console.error('[FunnelDiag] QueryCache não existe no escopo. Isso acontece quando o script quebra antes de declarar QueryCache ou quando o bloco foi movido para fora do IIFE.');
+        return;
+      }
+      if (msg.includes('cached.length') || msg.includes('qtd= undefined')) {
+        console.error('[FunnelDiag] Cache retornou um objeto (ctx) em vez de uma lista. Causa típica: fallback QueryCache com assinatura set(k,v) sendo usado, mas o funil chama set(k, ctx, out). Remova o fallback e mantenha QueryCache com (endpoint, ctx).');
+        return;
+      }
+      console.error('[FunnelDiag] Erro não classificado:', err);
+    }
+
+    window.addEventListener('error', (e) => explain(e.error || e.message));
+    window.addEventListener('unhandledrejection', (e) => explain(e.reason));
+
+    window.FunnelDiag = { explain };
+  })();
+
+
 })(); // <- FIM da IIFE bootFunnel
