@@ -1,6 +1,10 @@
 // js/ui-optionlist.js
 (function () {
-  if (window.__lessonai_optionlist_loaded) return;
+  // Compat: se já carregou com a flag antiga ou nova, não carrega de novo
+  if (window.__aulaiPro_optionlist_loaded || window.__lessonai_optionlist_loaded) return;
+
+  window.__aulaiPro_optionlist_loaded = true;
+  // mantém a antiga também, para evitar duplicação em páginas que ainda usem o nome antigo
   window.__lessonai_optionlist_loaded = true;
 
   // Util

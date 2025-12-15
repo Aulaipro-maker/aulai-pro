@@ -939,13 +939,32 @@
 
 
   <script>
-  (function () {
-    const fromBody = document.body?.dataset?.apiBase;
-    window.API_BASE = fromBody || window.API_BASE || window.BASE_URL || 'http://127.0.0.1:8000';
-    window.BASE_URL = window.API_BASE;
-    console.log('[LessonAI] API_BASE =', window.API_BASE);
-  })();
-  </script>
+(function () {
+  const fromBody = document.body?.dataset?.apiBase;
+  const host = location.hostname;
+  const isLocal = (host === 'localhost' || host === '127.0.0.1');
+
+  const fallbackLocal = 'http://127.0.0.1:8000';
+  const fallbackProd  = 'https://aulaipro-backend-production.up.railway.app';
+
+  const API_BASE = fromBody || window.API_BASE || window.BASE_URL || (isLocal ? fallbackLocal : fallbackProd);
+
+  // Namespace AulaiPro (novo)
+  window.AulaiPro = window.AulaiPro || {};
+  window.AulaiPro.API_BASE = window.AulaiPro.API_BASE || API_BASE;
+
+  // Legado (usado pelo frontend atual)
+  window.API_BASE  = window.API_BASE  || API_BASE;
+  window.BASE_URL  = window.BASE_URL  || API_BASE;
+
+  // Compatibilidade (se algo ainda procurar LESSON, não quebra)
+  window.LESSON = window.LESSON || {};
+  window.LESSON.API_BASE = window.LESSON.API_BASE || API_BASE;
+
+  console.log('[AulaiPro][ENV] API_BASE =', API_BASE);
+})();
+</script>
+
 
   <script src="js/health.js"></script>
   <script src="js/ui-optionlist.js"></script>

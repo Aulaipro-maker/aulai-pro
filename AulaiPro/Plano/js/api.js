@@ -43,7 +43,8 @@
   if (typeof window !== 'undefined') {
     window.API_BASE = DETECTED_API_BASE;
     window.BASE_URL = DETECTED_API_BASE; // compat
-    console.log('[LessonAI] API_BASE =', window.API_BASE);
+    console.log('[AulaiPro][API] API_BASE =', API_BASE);
+
   }
 
   // -----------------------------------
